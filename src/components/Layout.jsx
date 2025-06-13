@@ -1,17 +1,15 @@
 import { useState } from "react";
-import Sidebar from "../components/sidebar";
+import Sidebars from "./Sidebars";
 import Header from "./Header";
 
 const Layout = ({ children }) => {
-
-
 
   return (
     <>
     
       <div className="d-flex hide-scrollbar ">
         <div className="col-md-2">
-          <Sidebar />
+          <Sidebars />
         </div>
         <div className="col-md-10">
           <div className="flex-grow-1 ms-5" style={{ marginLeft: "320px" }}>

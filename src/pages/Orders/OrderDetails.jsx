@@ -55,39 +55,167 @@
 //   const [shippingAddress, setShippingAddress] = useState("");
 //   const [floorManager, setFloorManager] = useState("");
 
+
+//   useEffect(() => {
+//     console.log("useeffect");
+//     fetchOrderDetails();
+//     fetchAllProducts();
+//   }, [products]); // This runs once on component mount
+
+//   useEffect(() => {
+//     if (order) {
+//       fetchFilteredInventoryForOrder();
+//     }
+//   }, [order]); // Trigger this when order details are set
+
+//   // Fetching filtered inventory for the order details
+//   const fetchFilteredInventoryForOrder = async () => {
+//     console.log("order before fetch call: ", order);
+//     console.log("products: ", products)
+//     try {
+//       const response = await axios.get(`${ApiURL}/inventory/filter`, {
+//         params: {
+//           startDate: order?.slots[0].quoteDate,  // Assuming `startDate` exists in the order
+//           endDate: order?.slots[0].endDate,      // Assuming `endDate` exists in the order
+//           products: order?.slots[0].products.map(p => p.productId).join(","),
+//         },
+//       });
+
+//       console.log(`${ApiURL}/inventory/filter: `, response.data);
+//       let filtered = response.data.stock || [];
+//       console.log("filtered: ", filtered)
+
+//       if (order?.slots?.length && filtered?.length) {
+//         // Loop through each slot in the order
+//         order.slots = order.slots.map((slot) => {
+//           if (slot?.products?.length) {
+//             // Loop through each product in the slot's products
+//             slot.products = slot.products.map((product) => {
+//               const stock = filtered.find((item) => item.productId === product.productId);
+
+//               // If stock is found, inject availableStock into the product, otherwise default to 0
+//               return {
+//                 ...product,
+//                 availableStock: stock ? stock.availableStock : 0,
+//               };
+//             });
+//           }
+//           return slot;
+//         });
+
+//         console.log("order slots: ",order.slots[0].products[0 ])
+
+//         // You can also update the top-level `products` if you want
+//         if (order?.products?.length) {
+//           order.products = order.products.map((product) => {
+//             const stock = filtered.find((item) => item.productId === product.productId);
+
+//             // Update the top-level product with available stock
+//             return {
+//               ...product,
+//               availableStock: stock ? stock.availableStock : 0,
+//             };
+//           });
+//         }
+
+//         console.log("Updated order with available stock: ", order);
+//       }
+
+
+
+//       // // Directly inject available stock into each product in the order
+//       // if (order?.products?.length && filtered?.length) {
+//       //   order.products = order.products.map((product) => {
+//       //     const stock = filtered.find((item) => item.productId === product.productId);
+//       //     return {
+//       //       ...product,
+//       //       availableStock: stock ? stock.availableStock : 0, // If stock found, add availableStock, else 0
+//       //     };
+//       //   });
+//       //   console.log("order after fetch: ",  order)
+
+//       //   // Now you can do anything with the updated order object
+//       //   console.log("Updated order with available stock: ", order);
+//       // }
+
+//       // // Directly inject available stock into each product in the order
+//       // // if (filtered?.length) {
+//       //   const updatedOrder = { ...order };  // Clone the order object
+
+//       //   updatedOrder.products = updatedOrder.products.map((product) => {
+//       //     const stock = filtered.find((item) => item.productId === product.productId);
+//       //     return {
+//       //       ...product,
+//       //       availableStock: stock ? stock.availableStock : 0, // If stock found, add availableStock, else 0
+//       //     };
+//       //   });
+
+//       //   // Use `setOrder` to update the state with the modified order
+//       //   setOrder(updatedOrder);
+
+//       // console.log("Updated order with available stock: ", updatedOrder);
+//       // }
+
+//     } catch (error) {
+//       console.error("Error fetching inventory for order:", error);
+//     }
+//   };
+
+//   // Fetch Order Details
+//   const fetchOrderDetails = async () => {
+//     try {
+//       const res = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+//       if (res.status === 200) {
+//         setOrder(res.data.order); // <-- Make sure your backend returns the order details
+//       }
+//     } catch (error) {
+//       console.error("Error fetching order details:", error);
+//     }
+//   };
+
+//   const fetchAllProducts = async () => {
+//     try {
+//       const res = await axios.get(`${ApiURL}/product/quoteproducts`);
+//       if (res.status === 200) {
+//         setAllProducts(res.data.QuoteProduct || []);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching all products:", error);
+//     }
+//   };
+
 //   // Fetch order details by id
 //   useEffect(() => {
 //     const fetchOrderDetails = async () => {
 //       setLoading(true);
 //       try {
-//         const response = await axios.get(
-//           `${ApiURL}/order/getOrder/${id}`
-//         );
+//         const response = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+//         console.log("res data: ", response.data);
+
 //         if (response.data.order) {
+//           // First, set the order data
 //           setOrder(response.data.order);
 
-//           // Safely extract products from slot-level or order-level
 //           let mergedProducts = [];
 
+//           // Process order slots to merge products
 //           if (
 //             Array.isArray(response.data.order.slots) &&
 //             response.data.order.slots.length > 0
 //           ) {
-//             // Combine products from all slots
 //             response.data.order.slots.forEach((slot) => {
 //               if (Array.isArray(slot.products)) {
 //                 slot.products.forEach((p) => {
 //                   mergedProducts.push({
 //                     ...p,
 //                     unitPrice: p.total / (p.quantity),
-//                     availableStock: p.availableStock,
 //                   });
 //                 });
 //               }
 //             });
 //           }
 
-//           // If slot-based products are empty, fall back to order.products (if they have names)
+//           // If no products in slots, use products directly from the order
 //           if (
 //             mergedProducts.length === 0 &&
 //             Array.isArray(response.data.order.products) &&
@@ -96,32 +224,30 @@
 //             mergedProducts = response.data.order.products.map((p) => ({
 //               ...p,
 //               unitPrice: p.total / (p.quantity),
-//               availableStock: p.availableStock ,
 //             }));
 //           }
 
-//           setProducts(mergedProducts);
+//           console.log("mergedProducts: ",mergedProducts)
+//           // Fetch available stock for all products and inject it into the mergedProducts array
+//           const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
+
+//           // Merge the stock data with products
+//           const mergedWithStock = mergedProducts.map((prod) => ({
+//             ...prod,
+//             availableStock: stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
+//           }));
+
+//           // Now, set the products after the order is fully set
+//           setProducts(mergedWithStock);
 //         }
 //       } catch (error) {
 //         console.error("Error fetching order details", error);
 //       }
 //       setLoading(false);
 //     };
+
 //     fetchOrderDetails();
 //   }, [id]);
-
-//   // Fetch all products for add modal
-//   const fetchAllProducts = async () => {
-//     try {
-//       const res = await axios.get(`${ApiURL}/product/quoteproducts`);
-//       // console.log("fetch prods: ", res.data)
-//       if (res.status === 200) {
-//         setAllProducts(res.data.QuoteProduct || []);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching all products:", error);
-//     }
-//   };
 
 //   useEffect(() => {
 //     fetchAllProducts();
@@ -159,13 +285,15 @@
 //       );
 
 //       try {
+//         console.log("order quotedate: ", order.slots[0].quoteDate)
+//         console.log("order enddate: ", order.slots[0].endDate)
 //         const res = await axios.post(
 //           `${ApiURL}/inventory/product/filter/${productId}`,
 //           {},
 //           {
 //             params: {
-//               startDate: items[0].slotDate[0],
-//               endDate: items[0].slotDate[1],
+//               startDate: order.slots[0].quoteDate,
+//               endDate: order.slots[0].endDate,
 //               productId,
 //             },
 //           }
@@ -227,10 +355,10 @@
 //       prev.map((prod, i) =>
 //         i === idx
 //           ? {
-//               ...prod,
-//               quantity: editQty,
-//               total: editQty * prod.unitPrice,
-//             }
+//             ...prod,
+//             quantity: editQty,
+//             total: editQty * prod.unitPrice,
+//           }
 //           : prod
 //       )
 //     );
@@ -273,6 +401,37 @@
 //     setFloorManager("");
 //   };
 
+//   useEffect(()=>{
+//     fetchAvailableStockForAllProducts()
+//   },[products])
+
+//   const fetchAvailableStockForAllProducts = async (products) => {
+//     const productIds = Array.from(
+//       new Set(products.map((prod) => prod.productId || prod._id))
+//     );
+//     if (productIds.length === 0) return {};
+
+//     console.log("order: ", order)
+//     console.log("startDate: ", order?.slots[0].quoteDate)
+//     console.log("endDate: ", order?.slots[0].endDate)
+
+//     try {
+//       const response = await axios.get(`${ApiURL}/inventory/filter`, {
+//         params: { products: productIds.join(","), startDate: order?.slots[0].quoteDate, endDate: order?.slots[0].endDate },
+//       });
+//       // Assume response.data.stock is [{ productId, availableStock }]
+//       const stockMap = {};
+//       (response.data.stock || []).forEach((item) => {
+//         stockMap[item.productId] = item.availableStock;
+//       });
+//       console.log("stockmap: ",stockMap) 
+//       return stockMap;
+//     } catch (error) {
+//       console.error("Error fetching available stock for all products:", error);
+//       return {};
+//     }
+//   };
+
 //   if (loading) {
 //     return (
 //       <Container className="my-5 text-center">
@@ -285,8 +444,13 @@
 //     return <div>Loading...</div>;
 //   }
 
+//   const handleClickHello = () => {
+//     console.log("handleClickHello: ", order.slots[0])
+//   }
+
 //   return (
 //     <div className="p-3" style={{ background: "#f6f8fa", minHeight: "100vh" }}>
+//       <button onClick={handleClickHello}>heelo</button>
 //       <Card className="shadow-sm mb-4" style={{ borderRadius: 12 }}>
 //         <Card.Body>
 //           <h6 className="mb-3" style={{ fontWeight: 700, fontSize: 17 }}>
@@ -399,9 +563,9 @@
 //                                 val === ""
 //                                   ? ""
 //                                   : Math.max(
-//                                       1,
-//                                       Math.min(Number(val), prod.availableStock)
-//                                     )
+//                                     1,
+//                                     Math.min(Number(val), prod.availableStock)
+//                                   )
 //                               );
 //                             }}
 //                             style={{
@@ -540,10 +704,10 @@
 //                 value={
 //                   addProductId
 //                     ? availableToAdd
-//                         .map((p) => ({ value: p._id, label: p.ProductName }))
-//                         .find(
-//                           (opt) => String(opt.value) === String(addProductId)
-//                         )
+//                       .map((p) => ({ value: p._id, label: p.ProductName }))
+//                       .find(
+//                         (opt) => String(opt.value) === String(addProductId)
+//                       )
 //                     : null
 //                 }
 //                 onChange={handleProductSelect}
@@ -599,9 +763,8 @@
 //                   <Form.Label>Price</Form.Label>
 //                   <Form.Control
 //                     type="text"
-//                     value={`₹${
-//                       selectedAddProduct ? selectedAddProduct.ProductPrice : 0
-//                     }`}
+//                     value={`₹${selectedAddProduct ? selectedAddProduct.ProductPrice : 0
+//                       }`}
 //                     disabled
 //                   />
 //                 </Form.Group>
@@ -613,10 +776,9 @@
 //                     type="text"
 //                     value={
 //                       selectedAddProduct
-//                         ? `₹${
-//                             (addQty ? addQty : 1) *
-//                             selectedAddProduct.ProductPrice
-//                           }`
+//                         ? `₹${(addQty ? addQty : 1) *
+//                         selectedAddProduct.ProductPrice
+//                         }`
 //                         : "₹0"
 //                     }
 //                     disabled
@@ -882,7 +1044,7 @@ const OrderDetails = () => {
     console.log("useeffect");
     fetchOrderDetails();
     fetchAllProducts();
-  }, [products]); // This runs once on component mount
+  }, []); // This runs once on component mount
 
   useEffect(() => {
     if (order) {
@@ -925,7 +1087,7 @@ const OrderDetails = () => {
           return slot;
         });
 
-        console.log("order slots: ",order.slots[0].products[0 ])
+        console.log("order slots: ", order.slots[0].products[0])
 
         // You can also update the top-level `products` if you want
         if (order?.products?.length) {
@@ -987,6 +1149,7 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       const res = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+      console.log("fetchorder details: ", res.data)
       if (res.status === 200) {
         setOrder(res.data.order); // <-- Make sure your backend returns the order details
       }
@@ -1007,25 +1170,87 @@ const OrderDetails = () => {
   };
 
   // Fetch order details by id
-  useEffect(() => {
+  // **************previous working
+  // useEffect(() => {
+  //   const fetchOrderDetails = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+  //       console.log("fetchOrderDetails res data: ", response.data);
+
+  //       if (response.data.order) {
+  //         // First, set the order data
+  //         setOrder(response.data.order);
+
+  //         let mergedProducts = [];
+
+  //         // Process order slots to merge products
+  //         if (
+  //           Array.isArray(response.data.order.slots) &&
+  //           response.data.order.slots.length > 0
+  //         ) {
+  //           response.data.order.slots.forEach((slot) => {
+  //             if (Array.isArray(slot.products)) {
+  //               slot.products.forEach((p) => {
+  //                 mergedProducts.push({
+  //                   ...p,
+  //                   unitPrice: p.total / (p.quantity),
+  //                 });
+  //               });
+  //             }
+  //           });
+  //         }
+
+  //         // If no products in slots, use products directly from the order
+  //         if (
+  //           mergedProducts.length === 0 &&
+  //           Array.isArray(response.data.order.products) &&
+  //           response.data.order.products[0]?.productName
+  //         ) {
+  //           mergedProducts = response.data.order.products.map((p) => ({
+  //             ...p,
+  //             unitPrice: p.total / (p.quantity),
+  //           }));
+  //         }
+
+  //         console.log("mergedProducts: ", mergedProducts)
+  //         // Fetch available stock for all products and inject it into the mergedProducts array
+  //         const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
+
+  //         // Merge the stock data with products
+  //         const mergedWithStock = mergedProducts.map((prod) => ({
+  //           ...prod,
+  //           availableStock: stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
+  //         }));
+
+  //         // Now, set the products after the order is fully set
+  //         setProducts(mergedWithStock);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching order details", error);
+  //     }
+  //     setLoading(false);
+  //   };
+
+  //   fetchOrderDetails();
+  // }, [id]);
+
+    useEffect(() => {
     const fetchOrderDetails = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${ApiURL}/order/getOrder/${id}`);
-        console.log("res data: ", response.data);
-
-        if (response.data.order) {
+        if (order) {
           // First, set the order data
-          setOrder(response.data.order);
+          setOrder(order);
 
           let mergedProducts = [];
 
           // Process order slots to merge products
           if (
-            Array.isArray(response.data.order.slots) &&
-            response.data.order.slots.length > 0
+            Array.isArray(order.slots) &&
+            order.slots.length > 0
           ) {
-            response.data.order.slots.forEach((slot) => {
+            order.slots.forEach((slot) => {
               if (Array.isArray(slot.products)) {
                 slot.products.forEach((p) => {
                   mergedProducts.push({
@@ -1040,16 +1265,16 @@ const OrderDetails = () => {
           // If no products in slots, use products directly from the order
           if (
             mergedProducts.length === 0 &&
-            Array.isArray(response.data.order.products) &&
-            response.data.order.products[0]?.productName
+            Array.isArray(order.products) &&
+            order.products[0]?.productName
           ) {
-            mergedProducts = response.data.order.products.map((p) => ({
+            mergedProducts = order.products.map((p) => ({
               ...p,
               unitPrice: p.total / (p.quantity),
             }));
           }
 
-          console.log("mergedProducts: ",mergedProducts)
+          console.log("mergedProducts: ", mergedProducts)
           // Fetch available stock for all products and inject it into the mergedProducts array
           const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
 
@@ -1069,7 +1294,7 @@ const OrderDetails = () => {
     };
 
     fetchOrderDetails();
-  }, [id]);
+  }, [order]);
 
   useEffect(() => {
     fetchAllProducts();
@@ -1223,13 +1448,13 @@ const OrderDetails = () => {
     setFloorManager("");
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchAvailableStockForAllProducts()
-  },[products])
+  }, [products])
 
   const fetchAvailableStockForAllProducts = async (products) => {
     const productIds = Array.from(
-      new Set(products.map((prod) => prod.productId || prod._id))
+      new Set(products?.map((prod) => prod.productId || prod._id))
     );
     if (productIds.length === 0) return {};
 
@@ -1246,7 +1471,7 @@ const OrderDetails = () => {
       (response.data.stock || []).forEach((item) => {
         stockMap[item.productId] = item.availableStock;
       });
-      console.log("stockmap: ",stockMap) 
+      console.log("stockmap: ", stockMap)
       return stockMap;
     } catch (error) {
       console.error("Error fetching available stock for all products:", error);
