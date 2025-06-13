@@ -1,416 +1,369 @@
+// import React from "react";
+// import { Card } from "react-bootstrap";
+// import {
+//   AiOutlineUser,
+//   AiOutlinePhone,
+//   AiOutlineDollarCircle,
+//   AiOutlineCalendar,
+//   AiOutlineTool,
+// } from "react-icons/ai";
+// import {
+//   FaUsers,
+//   FaWarehouse,
+//   FaTruckLoading,
+//   FaIndustry,
+//   FaUserCog,
+//   FaCheckCircle,
+//   FaPencilAlt,
+//   FaMoneyCheckAlt,
+//   FaBoxOpen,
+//   FaBox,
+// } from "react-icons/fa";
+
+// // Importing chart.js and react-chartjs-2 for the bar chart
+// import { Bar } from "react-chartjs-2";
+// import {
+//   Chart as ChartJS,
+//   CategoryScale,
+//   LinearScale,
+//   BarElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+// } from "chart.js";
+
+// // Registering the necessary chart.js components
+// ChartJS.register(
+//   CategoryScale,
+//   LinearScale,
+//   BarElement,
+//   Title,
+//   Tooltip,
+//   Legend
+// );
+
+// const Dashboard = () => {
+//   const preProductionData = [
+//     {
+//       title: "Orders",
+//       count: 45,
+//       icon: <FaBoxOpen size={40} />,
+//     },
+//     {
+//       title: "Clients",
+//       count: 10,
+//       icon: <FaUsers size={40} />,
+//     },
+//     {
+//       title: "Quotations",
+//       count: 25,
+//       icon: <FaWarehouse size={40} />,
+//     },
+//   ];
+
+//   // Sample data for the bar chart (Orders in different months)
+//   const orderData = {
+//     labels: ["January", "February", "March", "April", "May", "June"], // Months
+//     datasets: [
+//       {
+//         label: "Orders",
+//         data: [10, 20, 15, 30, 25, 40],
+//         backgroundColor: "#4e73df",
+//         borderColor: "#2e59d9",
+//         borderWidth: 1,
+//       },
+//     ],
+//   };
+
+//   const options = {
+//     responsive: true,
+//     plugins: {
+//       title: {
+//         display: true,
+//         text: "Orders per Month",
+//       },
+//       tooltip: {
+//         callbacks: {
+//           // Customize tooltip to show the count of orders in the tooltip
+//           label: (context) => `Orders: ${context.raw}`,
+//         },
+//       },
+//     },
+//     scales: {
+//       y: {
+//         beginAtZero: true,
+//         ticks: {
+//           stepSize: 5,
+//         },
+//       },
+//     },
+//   };
+
+//   return (
+//     <div className="container p-4 rounded " style={{ background: "#F4F4F4" }}>
+//       <div className="row mt-4 justify-content-start">
+//         {preProductionData.map((item, index) => (
+//           <div className="col-4 mb-2 px-1" key={index}>
+//             <Card className="shadow border-0 p-2 text-center card-hover">
+//               <Card.Body className="d-flex flex-column align-items-center justify-content-center">
+//                 <div className="mb-1 icon">{item.icon}</div>
+//                 <h6 className="fw-bold mb-1" style={{ fontSize: "12px" }}>
+//                   {item.title}
+//                 </h6>
+//                 <p className="fw-bold mb-0" style={{ fontSize: "18px" }}>
+//                   {item.count}
+//                 </p>
+//                 <small className="text-muted" style={{ fontSize: "10px" }}>
+//                   {item.subtitle}
+//                 </small>
+//               </Card.Body>
+//             </Card>
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* Bar Chart for Orders */}
+//       <div className="mt-4">
+//         <Card className="shadow border-0 p-2">
+//           <Card.Body>
+//             <h6 className="fw-bold mb-3" style={{ fontSize: "16px" }}>
+//               Orders Per Month
+//             </h6>
+//             <Bar data={orderData} options={options} />
+//           </Card.Body>
+//         </Card>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Dashboard;
+
 import React, { useEffect, useState } from "react";
-import { BsBoxSeam, BsCurrencyDollar } from "react-icons/bs";
-import { GoPrimitiveDot } from "react-icons/go";
-import { IoIosMore } from "react-icons/io";
-import { DropDownListComponent } from "@syncfusion/ej2-react-dropdowns";
-import { Stacked, Pie, Button, LineChart, SparkLine } from "../components";
+import { Card } from "react-bootstrap";
+import { FaUsers, FaWarehouse, FaBoxOpen } from "react-icons/fa";
+import { Bar } from "react-chartjs-2";
 import {
-  recentTransactions,
-  dropdownData,
-  SparklineAreaData,
-  ecomPieChartData,
-} from "../data/dummy";
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import axios from "axios";
-import { MdOutlineSupervisorAccount } from "react-icons/md";
-import { FiBarChart } from "react-icons/fi";
-import { useStateContext } from "../contexts/ContextProvider";
-import { HiOutlineRefresh } from "react-icons/hi";
-import { ApiURL } from "../path";
+import moment from "moment";
+import { ApiURL } from "../api";
 
-// Drop Down Menu
-const DropDown = ({ currentMode }) => (
-  <div className="w-28 border-1 border-color px-2 py-1 rounded-md">
-    <DropDownListComponent
-      id="time"
-      fields={{ text: "Time", value: "Id" }}
-      style={{ border: "none", color: currentMode === "Dark" && "white" }}
-      value="1"
-      dataSource={dropdownData}
-      popupHeight="220px"
-      popupWidth="120px"
-    />
-  </div>
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// Dashboard
 const Dashboard = () => {
-  const { currentColor, currentMode } = useStateContext();
-  const [ClientsData, setClientsData] = useState();
-  const [Products, setProducts] = useState();
-  const [Refurbishment, setRefurbishment] = useState({});
-  const [totalorders, settotalorders] = useState();
-  const [todayorders, settodayorders] = useState();
-  const [totalquotations, settotalquotations] = useState();
-  const [todayquotations, settodayquotations] = useState();
-
-  // console.log(Refurbishment,"fetchrefurbishment");
+  const [counts, setCounts] = useState({
+    Orders: 0,
+    Clients: 0,
+    Quotations: 0,
+  });
+  const [selectedCategory, setSelectedCategory] = useState("Orders");
+  const [monthlyData, setMonthlyData] = useState([]);
 
   useEffect(() => {
-    fetchTotalclients();
-    fetchTotalproducts();
-    fetchTotalorders();
-    fetchTotalquotation();
-    fetchrefurbishment();
+    fetchCounts();
   }, []);
 
-  const fetchTotalclients = async () => {
+  useEffect(() => {
+    fetchMonthlyData(selectedCategory);
+  }, [selectedCategory]);
+
+  const fetchCounts = async () => {
     try {
-      const res = await axios.get(`${ApiURL}/client/TotalNumberOfClients`);
-      if (res.status === 200) {
-        setClientsData(res.data.clientCount);
-      }
+      const [ordersRes, clientsRes, quotationsRes] = await Promise.all([
+        axios.get(`${ApiURL}/order/TotalNumberOfOrder`),
+        axios.get(`${ApiURL}/client/TotalNumberOfClients`),
+        axios.get(`${ApiURL}/quotations/TotalNumberOfquotation`),
+      ]);
+      setCounts({
+        Orders: ordersRes.data.totalorderCount || 0,
+        Clients: clientsRes.data.clientCount || 0,
+        Quotations: quotationsRes.data.totalQuotationCount || 0,
+      });
     } catch (error) {
-      console.error("Error fetching Totalclients:", error);
+      // handle error
     }
   };
 
-  const fetchTotalproducts = async () => {
+  const fetchMonthlyData = async (category) => {
     try {
-      const res = await axios.get(`${ApiURL}/product/TotalNumberOfProduct`);
-      if (res.status === 200) {
-        setProducts(res.data.productCount);
+      let apiUrl = "";
+      if (category === "Orders") {
+        apiUrl = `${ApiURL}/order/getallorder`;
+      } else if (category === "Clients") {
+        apiUrl = `${ApiURL}/client/getallclients`;
+      } else if (category === "Quotations") {
+        apiUrl = `${ApiURL}/quotations/getallquotations`;
       }
+      const res = await axios.get(apiUrl);
+      const data =
+        res.data.orderData ||
+        res.data.Client ||
+        res.data.quoteData ||
+        res.data.data ||
+        [];
+      // Group by month
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const monthly = {};
+      months.forEach((m) => (monthly[m] = 0));
+      data.forEach((item) => {
+        if (item.createdAt) {
+          const month = moment(item.createdAt).format("MMMM");
+          if (monthly[month] !== undefined) monthly[month] += 1;
+        }
+      });
+      setMonthlyData(months.map((month) => monthly[month]));
     } catch (error) {
-      console.error("Error fetching Totalproduct:", error);
-    }
-  };
-  const fetchTotalorders = async () => {
-    try {
-      const res = await axios.get(`${ApiURL}/order/TotalNumberOfOrder`);
-      if (res.status === 200) {
-        settotalorders(res.data.totalorderCount);
-        settodayorders(res.data.todayorderCount);
-      }
-    } catch (error) {
-      console.error("Error fetching :", error);
-    }
-  };
-
-  const fetchTotalquotation = async () => {
-    try {
-      const res = await axios.get(
-        `${ApiURL}/quotations/TotalNumberOfquotation`
-      );
-      if (res.status === 200) {
-        settotalquotations(res.data.totalQuotationCount);
-        settodayquotations(res.data.todayQuotationCount);
-      }
-    } catch (error) {
-      console.error("Error fetching :", error);
-    }
-  };
-  const fetchrefurbishment = async () => {
-    try {
-      const res = await axios.get(`${ApiURL}/refurbishment/getRefurbishment`);
-      if (res.status === 200) {
-        setRefurbishment(res.data.RefurbishmentData || []);
-      }
-    } catch (error) {
-      console.error("Error fetching Refurbishment:", error);
-      toast.error("Failed to fetch Refurbishment");
+      setMonthlyData([]);
     }
   };
 
-  const earningData = [
+  const preProductionData = [
     {
-      icon: <MdOutlineSupervisorAccount />,
-      amount: ClientsData,
-      percentage: "-4%",
-      title: "Clients",
-      iconColor: "#03C9D7",
-      iconBg: "#E5FAFB",
-      pcColor: "red-600",
-    },
-    {
-      icon: <BsBoxSeam />,
-      amount: Products,
-      percentage: "+23%",
-      title: "Products",
-      iconColor: "rgb(255, 244, 229)",
-      iconBg: "rgb(254, 201, 15)",
-      pcColor: "green-600",
-    },
-    {
-      icon: <FiBarChart />,
-      amount: totalorders,
-      percentage: todayorders,
       title: "Orders",
-      iconColor: "rgb(228, 106, 118)",
-      iconBg: "rgb(255, 244, 229)",
-
-      pcColor: "green-600",
+      count: counts.Orders,
+      icon: <FaBoxOpen size={40} />,
+      color: "#323D4F",
+      border: "#2e59d9",
     },
     {
-      icon: <HiOutlineRefresh />,
-      amount: totalquotations,
-      percentage: todayquotations,
-      title: "Quotation",
-      iconColor: "rgb(0, 194, 146)",
-      iconBg: "rgb(235, 250, 242)",
-      pcColor: "red-600",
+      title: "Clients",
+      count: counts.Clients,
+      icon: <FaUsers size={40} />,
+      color: "#323D4F",
+      border: "#16a34a",
     },
-    // {
-    //   icon: <HiOutlineRefresh />,
-    //   amount: Refurbishment.length,
-    //   title: "Refurbishment",
-    //   iconColor: "rgb(0, 194, 146)",
-    //   iconBg: "rgb(235, 250, 242)",
-    //   pcColor: "red-600",
-    // },
+    {
+      title: "Quotations",
+      count: counts.Quotations,
+      icon: <FaWarehouse size={40} />,
+      color: "#323D4F",
+      border: "#f59e42",
+    },
   ];
 
-  const [highestSale, setHighestSale] = useState([]);
-
-  // product sales
-  const fetchProductTotalorders = async () => {
-    try {
-      const res = await axios.get(
-        `${ApiURL}/order/products/sales/highest-lowest`
-      );
-      if (res.status === 200) {
-        setHighestSale(res.data.topProducts);
-        // setLowestSale(res.data.lowestSale);
-      }
-    } catch (error) {ß
-      console.error("Error fetching :", error);
-    }
+  const barColors = {
+    Orders: "#4e73df",
+    Clients: "#22c55e",
+    Quotations: "#f59e42",
   };
-  useEffect(() => {
-    fetchProductTotalorders();
-  }, []);
 
-  // category sales
-  const [highestcategory, setHighestCategory] = useState([]);
-  const fetchCategoryTotalorders = async () => {
-    try {
-      const res = await axios.get(
-        `${ApiURL}/order/category/sales/highest-lowest`
-      );
-      if (res.status === 200) {
-        setHighestCategory(res.data.categorySales);
-        // setLowestSale(res.data.lowestSale);
-      }
-    } catch (error) {
-      console.error("Error fetching :", error);
-    }
+  const orderData = {
+    labels: [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ],
+    datasets: [
+      {
+        label: `${selectedCategory} per Month`,
+        data: monthlyData,
+        backgroundColor: barColors[selectedCategory],
+        borderColor: barColors[selectedCategory],
+        borderWidth: 2,
+        borderRadius: 8,
+        hoverBackgroundColor: "#6366f1",
+        hoverBorderColor: "#6366f1",
+        barPercentage: 0.7,
+        categoryPercentage: 0.7,
+      },
+    ],
   };
-  useEffect(() => {
-    fetchCategoryTotalorders();
-  }, []);
+
+  const options = {
+    responsive: true,
+    animation: {
+      duration: 1200,
+      easing: "easeOutBounce",
+    },
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: `${selectedCategory} Per Month`,
+        font: { size: 18 },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${selectedCategory}: ${context.raw}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 },
+        grid: { color: "#e5e7eb" },
+      },
+      x: {
+        grid: { color: "#f3f4f6" },
+      },
+    },
+  };
 
   return (
-    <div className="mt-24">
-      <div className="flexj ustify-between">
-        <div
-          className="flex m-3 flex-wrap gap-1 items-center justify-between"
-          style={{ padding: "10px" }}
-        >
-          {/* Earning Data */}
-          {earningData.map((item) => (
-            <div
-              key={item.title}
-              className="bg-white h-44 dark:text-gray-200 dark:bg-secondary-dark-bg w-[20rem]  p-4 pt-9 rounded-2xl flex justify-between"
+    <div className="container p-4 rounded" style={{ background: "#F4F4F4" }}>
+      <div className="row mt-4 justify-content-start">
+        {preProductionData.map((item, index) => (
+          <div className="col-4 mb-2 px-1" key={index}>
+            <Card
+              className={`shadow border-0 p-2 text-center card-hover transition-all ${
+                selectedCategory === item.title
+                  ? "border-primary border-2 scale-105"
+                  : ""
+              }`}
+              style={{
+                cursor: "pointer",
+                boxShadow:
+                  selectedCategory === item.title
+                    ? `0 0 0 2px ${item.color}33`
+                    : undefined,
+                transition: "all 0.2s",
+              }}
+              onClick={() => setSelectedCategory(item.title)}
             >
-              {/* Icon */}
-              <button
-                type="button"
-                style={{
-                  color: item.iconColor,
-                  backgroundColor: item.iconBg,
-                  fontSize: "3rem",
-                  height: "90px",
-                  width: "90px",
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-                className="text-2xl opacity-0.9 rounded-full  p-4 hover:drop-shadow-xl"
-              >
-                {item.icon}
-              </button>
-              <div>
-                <p
-                  className="text-sm text-gray-400  mt-1"
+              <Card.Body className="d-flex flex-column align-items-center justify-content-center">
+                <div
+                  className="mb-1 icon"
                   style={{
-                    fontSize: "16px",
-                    fontWeight: "700",
-                    color: "black",
+                    color: item.color,
+                    filter:
+                      selectedCategory === item.title
+                        ? "drop-shadow(0 0 8px #a5b4fc)"
+                        : undefined,
                   }}
                 >
+                  {item.icon}
+                </div>
+                <h6 className="fw-bold mb-1" style={{ fontSize: "12px" }}>
                   {item.title}
+                </h6>
+                <p className="fw-bold mb-0" style={{ fontSize: "18px" }}>
+                  {item.count}
                 </p>
-                {/* Amount (with %) */}
-                <p className="mt-3">
-                  <span className="text-lg font-semibold">{item.amount}</span>
-                  {/* <span className={`text-sm text-${item.pcColor} ml-2`}>
-                  {item.percentage}
-                </span> */}
-                </p>
-              </div>
-              {/* Title */}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex gap-10 flex-wrap justify-center">
-        {/* <div>
-          <div
-            className=""
-            style={{ display: "flex", justifyContent: "space-around" }}
-          >
-            <div className="table-0 ">
-              <div className="top-products-container">
-                <h2
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "800",
-                    textAlign: "left",
-                  }}
-                >
-                  Top Category Sales
-                </h2>
-                <table className="top-products-table">
-                  <thead>
-                    <tr>
-                      <th>S.No.</th>
-                      <th>Category Name</th>
-                      <th>Total Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {highestcategory.map((ele, i) => {
-                      return (
-                        <tr>
-                          <td>{++i}</td>
-                          <td>{ele.categoryName}</td>
-                          <td>{ele.totalSales}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              </Card.Body>
+            </Card>
           </div>
-          <div
-            className=""
-            style={{ display: "flex", justifyContent: "space-around" }}
-          >
-            <div className="table-0 ">
-              <div className="top-products-container">
-                <h2
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "800",
-                    textAlign: "left",
-                  }}
-                >
-                  Top Products Sales
-                </h2>
-                <table className="top-products-table">
-                  <thead>
-                    <tr>
-                      <th>S.No.</th>
-                      <th>Product Name</th>
-                      <th>Total Sales</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {highestSale.map((ele, i) => {
-                      return (
-                        <tr>
-                          <td>{++i}</td>
-                          <td>{ele.productName}</td>
-                          <td>{ele.totalSales}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-           
-          </div>
-        </div> */}
-        <div className="bg-white dark:text-gray-200 dark:bg-secondary-dark-bg m-3 p-4 rounded-2xl md:w-780">
-          <div className="flex justify-between">
-            {/* Revenue Updates */}
-            <p className="font-semibold text-xl">Revenue Updates</p>
-            <div className="flex items-center gap-4">
-              {/* Expenses */}
-              <p className="flex items-center gap-2 text-gray-600 hover:drop-shadow-xl">
-                <span>
-                  <GoPrimitiveDot />
-                </span>
-                <span>Expense</span>
-              </p>
-
-              {/* Budget */}
-              <p className="flex items-center gap-2 text-green-400 hover:drop-shadow-xl">
-                <span>
-                  <GoPrimitiveDot />
-                </span>
-                <span>Budget</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-10 flex gap-10 flex-wrap justify-center">
-            {/* <div className=" border-r-1 border-color m-4 pr-10"> */}
-            {/* Budget Info */}
-            {/* <div>
-                <p>
-                  <span className="text-3xl font-semibold">$93,438</span>
-                  <span className="p-1.5 hover:drop-shadow-xl cursor-pointer rounded-full text-white bg-green-400 ml-3 text-xs">
-                    23%
-                  </span>
-                </p>
-                <p className="text-gray-500 mt-1">Budget</p>
-              </div>
-
-
-              <div className="mt-8">
-                <p className="text-3xl font-semibold">$48,487</p>
-
-                <p className="text-gray-500 mt-1">Expense</p>
-              </div>
-
-
-              <div className="mt-5">
-                <SparkLine
-                  currentColor={currentColor}
-                  id="line-sparkLine"
-                  type="Line"
-                  height="80px"
-                  width="250px"
-                  data={SparklineAreaData}
-                  color={currentColor}
-                />
-              </div>
-
-              
-              <div className="mt-10">
-                <Button
-                  color="white"
-                  bgColor={currentColor}
-                  text="Download Report"
-                  borderRadius="10px"
-                />
-              </div> */}
-            {/* </div> */}
-
-            <div>
-              <Stacked width="650px" height="360px" />
-            </div>
-          </div>
-        </div>
-
-       
-
-        
+        ))}
       </div>
 
-     
-    
+      {/* Bar Chart for Selected Category */}
+      <div className="mt-4">
+        <Card className="shadow border-0 p-2">
+          <Card.Body>
+            <Bar data={orderData} options={options} />
+          </Card.Body>
+        </Card>
+      </div>
     </div>
   );
 };
