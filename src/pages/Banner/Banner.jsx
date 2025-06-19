@@ -241,7 +241,7 @@ const filteredBanners = banners.filter((banner) =>
               ))}
               {currentBanners.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="text-center">
+                  <td colSpan="4" className="text-center">
                     No banners found.
                   </td>
                 </tr>

@@ -296,6 +296,14 @@ const Category = () => {
                   </td>
                 </tr>
               ))}
+
+               {filterData.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center">
+                    No Categories found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </div>

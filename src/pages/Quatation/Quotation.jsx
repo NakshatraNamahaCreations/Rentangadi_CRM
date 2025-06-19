@@ -426,7 +426,7 @@ const Quotation = () => {
                 <th className="text-start">Time</th>
                 <th className="text-start">Client Name</th>
                 <th className="text-start">GST</th>
-                <th className="text-start">Round off</th>
+                {/* <th className="text-start">Round off</th> */}
                 <th className="text-start">GrandTotal</th>
                 <th className="text-start">Status</th>
                 <th className="text-center">Actions</th>
@@ -447,7 +447,7 @@ const Quotation = () => {
                   <td className="text-start">{q.quoteTime}</td>
                   <td className="text-start">{q.clientName}</td>
                   <td className="text-start">{q.GST}</td>
-                  <td className="text-start">{q.adjustments || q.roundOff}</td>
+                  {/* <td className="text-start">{q.adjustments || q.roundOff}</td> */}
                   <td className="text-start">{q.GrandTotal || q.grandTotal}</td>
                   <td className="text-start">{q.status}</td>
                   <td className="">

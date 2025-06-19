@@ -21,7 +21,48 @@ import logo from "../assets/RentangadiLogo1.png";
 const Sidebars = () => {
   const location = useLocation();
 
-  const menuItems = [
+  // const menuItems = [
+  //   { name: "Dashboard", path: "/dashboard", icon: MdDashboard },
+
+  //   { name: "Master", path: "/master", icon: FaClipboardList },
+  //   { name: "Banner", path: "/banner", icon: FaTags },
+  //   {
+  //     name: "Product Management",
+  //     path: "/product-management",
+  //     icon: FaBoxOpen,
+  //   },
+  //   { name: "Clients", path: "/client", icon: FaUserFriends },
+  //   { name: "Orders", path: "/orders", icon: FaShoppingBag },
+  //   {
+  //     name: "Enquiry List",
+  //     path: "/enquiry-list",
+  //     icon: MdOutlineSupportAgent,
+  //   },
+  //   {
+  //     name: "Enquiry Calendar",
+  //     path: "/enquiry-calender",
+  //     icon: FaCalendarAlt,
+  //   },
+  //   { name: "Quotation", path: "/quotation", icon: FaFileInvoiceDollar },
+  //   {
+  //     name: "Terms & Conditions",
+  //     path: "/terms-conditions",
+  //     icon: FaFileContract,
+  //   },
+  //   { name: "Payment Report", path: "/payment-report", icon: FaChartBar },
+  //   {
+  //     name: "Refurbishment Report",
+  //     path: "/refurbihsment-report",
+  //     icon: FaTools,
+  //   },
+  //   {
+  //     name: "Inventory Product List",
+  //     path: "/inventory-product-list",
+  //     icon: MdInventory,
+  //   },
+  // ];
+
+    const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: MdDashboard },
 
     { name: "Master", path: "/master", icon: FaClipboardList },
@@ -32,7 +73,6 @@ const Sidebars = () => {
       icon: FaBoxOpen,
     },
     { name: "Clients", path: "/client", icon: FaUserFriends },
-    { name: "Orders", path: "/orders", icon: FaShoppingBag },
     {
       name: "Enquiry List",
       path: "/enquiry-list",
@@ -44,6 +84,7 @@ const Sidebars = () => {
       icon: FaCalendarAlt,
     },
     { name: "Quotation", path: "/quotation", icon: FaFileInvoiceDollar },
+    { name: "Orders", path: "/orders", icon: FaShoppingBag },
     {
       name: "Terms & Conditions",
       path: "/terms-conditions",

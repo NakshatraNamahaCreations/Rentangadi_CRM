@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ApiURL } from "../../api";
+import { ApiURL, ImageApiURL } from "../../api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
@@ -468,7 +468,7 @@ const AddNewEnquiry = () => {
                                 p.img
                                   ? p.img
                                   : p.ProductIcon
-                                  ? `https://api.rentangadi.in/product/${p.ProductIcon}`
+                                  ? `${ImageApiURL}/product/${p.ProductIcon}`
                                   : "https://via.placeholder.com/36x28?text=No+Img"
                               }
                               alt={p.name || p.ProductName}
@@ -549,7 +549,7 @@ const AddNewEnquiry = () => {
                                   onClick={() => handleSelectProduct(prod)}
                                 >
                                   <img
-                                    src={`https://api.rentangadi.in/product/${prod?.ProductIcon}`}
+                                    src={`${ImageApiURL}/product/${prod?.ProductIcon}`}
                                     alt={prod.ProductName}
                                     style={{
                                       width: 36,

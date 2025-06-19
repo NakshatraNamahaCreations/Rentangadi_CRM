@@ -10,12 +10,13 @@
 //   Spinner,
 //   Container,
 // } from "react-bootstrap";
-// import { useNavigate, useParams } from "react-router-dom";
+// import { useFetcher, useNavigate, useParams } from "react-router-dom";
 // import axios from "axios";
 // import Select from "react-select";
 // import { FaEdit, FaTrashAlt, FaCheck, FaTimes } from "react-icons/fa";
 // import { ApiURL } from "../../api";
 // import { toast } from "react-hot-toast";
+// import DatePicker from "react-datepicker";
 
 // const labelStyle = {
 //   color: "#666",
@@ -24,6 +25,26 @@
 //   minWidth: 110,
 // };
 // const valueStyle = { color: "#222", fontSize: 13, fontWeight: 400 };
+
+// const parseDate = (str) => {
+//   // console.log("parseDate str error: ", str)
+//   if (!str) return null; // If date is undefined or null, return null.
+//   const [day, month, year] = str.split("-"); // Assuming date format is DD-MM-YYYY
+//   return new Date(`${year}-${month}-${day}`); // Convert to YYYY-MM-DD format for JavaScript Date
+// };
+
+// const formatDateToDDMMYYYY = (date) => {
+//   if (!date) return null; // If date is null or undefined, return null.
+//   if (!(date instanceof Date) || isNaN(date)) {
+//     console.log("formatDateToDDMMYYYY date:", date);
+//     return null;
+//   }
+//   const day = String(date.getDate()).padStart(2, "0"); // Add leading zero if needed
+//   const month = String(date.getMonth() + 1).padStart(2, "0"); // Add leading zero if needed
+//   const year = date.getFullYear();
+
+//   return `${day}-${month}-${year}`; // Return in dd-mm-yyyy format
+// };
 
 // const OrderDetails = () => {
 //   const { id } = useParams();
@@ -54,36 +75,56 @@
 //   const [addedRefProducts, setAddedRefProducts] = useState([]);
 //   const [shippingAddress, setShippingAddress] = useState("");
 //   const [floorManager, setFloorManager] = useState("");
+//   const [refurbishmentdata, setRefurbishmentdata] = useState({});
+//   const [productDates, setProductDates] = useState({});
 
+//   const handleRefurbishment = async () => {
+//     try {
+//       if (addedRefProducts.length === 0) {
+//         toast.error("Please add at least one product");
+//         return;
+//       }
 
-//   useEffect(() => {
-//     console.log("useeffect");
-//     fetchOrderDetails();
-//     fetchAllProducts();
-//   }, [products]); // This runs once on component mount
+//       const payload = {
+//         products: addedRefProducts,
+//         shippingAddress,
+//         floorManager,
+//         status: "sent",
+//         orderId: order._id,
+//       };
 
-//   useEffect(() => {
-//     if (order) {
-//       fetchFilteredInventoryForOrder();
+//       const response = await axios.post(
+//         `${ApiURL}/refurbishment/create`,
+//         payload
+//       );
+//       if (response.status === 201) {
+//         toast.success("Refurbishment submitted successfully");
+//         handleCloseRefModal();
+//       } else {
+//         toast.error("Failed to submit refurbishment");
+//       }
+//     } catch (error) {
+//       console.error("Error submitting refurbishment:", error);
+//       toast.error("Error occurred while adding refurbishment");
 //     }
-//   }, [order]); // Trigger this when order details are set
+//   };
 
 //   // Fetching filtered inventory for the order details
 //   const fetchFilteredInventoryForOrder = async () => {
 //     console.log("order before fetch call: ", order);
-//     console.log("products: ", products)
+//     console.log("products: ", products);
 //     try {
 //       const response = await axios.get(`${ApiURL}/inventory/filter`, {
 //         params: {
-//           startDate: order?.slots[0].quoteDate,  // Assuming `startDate` exists in the order
-//           endDate: order?.slots[0].endDate,      // Assuming `endDate` exists in the order
-//           products: order?.slots[0].products.map(p => p.productId).join(","),
+//           startDate: order?.slots[0].quoteDate,
+//           endDate: order?.slots[0].endDate,
+//           products: order?.slots[0].products.map((p) => p.productId).join(","),
 //         },
 //       });
 
-//       console.log(`${ApiURL}/inventory/filter: `, response.data);
+//       console.log(`${ApiURL}/inventory/filter: `, response.data.stock);
 //       let filtered = response.data.stock || [];
-//       console.log("filtered: ", filtered)
+//       console.log("filtered: ", filtered);
 
 //       if (order?.slots?.length && filtered?.length) {
 //         // Loop through each slot in the order
@@ -91,7 +132,9 @@
 //           if (slot?.products?.length) {
 //             // Loop through each product in the slot's products
 //             slot.products = slot.products.map((product) => {
-//               const stock = filtered.find((item) => item.productId === product.productId);
+//               const stock = filtered.find(
+//                 (item) => item.productId === product.productId
+//               );
 
 //               // If stock is found, inject availableStock into the product, otherwise default to 0
 //               return {
@@ -103,12 +146,14 @@
 //           return slot;
 //         });
 
-//         console.log("order slots: ",order.slots[0].products[0 ])
+//         console.log("order slots: ", order.slots[0].products[0]);
 
 //         // You can also update the top-level `products` if you want
 //         if (order?.products?.length) {
 //           order.products = order.products.map((product) => {
-//             const stock = filtered.find((item) => item.productId === product.productId);
+//             const stock = filtered.find(
+//               (item) => item.productId === product.productId
+//             );
 
 //             // Update the top-level product with available stock
 //             return {
@@ -120,8 +165,6 @@
 
 //         console.log("Updated order with available stock: ", order);
 //       }
-
-
 
 //       // // Directly inject available stock into each product in the order
 //       // if (order?.products?.length && filtered?.length) {
@@ -155,7 +198,6 @@
 
 //       // console.log("Updated order with available stock: ", updatedOrder);
 //       // }
-
 //     } catch (error) {
 //       console.error("Error fetching inventory for order:", error);
 //     }
@@ -165,6 +207,7 @@
 //   const fetchOrderDetails = async () => {
 //     try {
 //       const res = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+//       console.log("fetchorder details: ", res.data);
 //       if (res.status === 200) {
 //         setOrder(res.data.order); // <-- Make sure your backend returns the order details
 //       }
@@ -185,30 +228,89 @@
 //   };
 
 //   // Fetch order details by id
+//   // **************previous working
+//   // useEffect(() => {
+//   //   const fetchOrderDetails = async () => {
+//   //     setLoading(true);
+//   //     try {
+//   //       const response = await axios.get(`${ApiURL}/order/getOrder/${id}`);
+//   //       console.log("fetchOrderDetails res data: ", response.data);
+
+//   //       if (response.data.order) {
+//   //         // First, set the order data
+//   //         setOrder(response.data.order);
+
+//   //         let mergedProducts = [];
+
+//   //         // Process order slots to merge products
+//   //         if (
+//   //           Array.isArray(response.data.order.slots) &&
+//   //           response.data.order.slots.length > 0
+//   //         ) {
+//   //           response.data.order.slots.forEach((slot) => {
+//   //             if (Array.isArray(slot.products)) {
+//   //               slot.products.forEach((p) => {
+//   //                 mergedProducts.push({
+//   //                   ...p,
+//   //                   unitPrice: p.total / (p.quantity),
+//   //                 });
+//   //               });
+//   //             }
+//   //           });
+//   //         }
+
+//   //         // If no products in slots, use products directly from the order
+//   //         if (
+//   //           mergedProducts.length === 0 &&
+//   //           Array.isArray(response.data.order.products) &&
+//   //           response.data.order.products[0]?.productName
+//   //         ) {
+//   //           mergedProducts = response.data.order.products.map((p) => ({
+//   //             ...p,
+//   //             unitPrice: p.total / (p.quantity),
+//   //           }));
+//   //         }
+
+//   //         console.log("mergedProducts: ", mergedProducts)
+//   //         // Fetch available stock for all products and inject it into the mergedProducts array
+//   //         const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
+
+//   //         // Merge the stock data with products
+//   //         const mergedWithStock = mergedProducts.map((prod) => ({
+//   //           ...prod,
+//   //           availableStock: stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
+//   //         }));
+
+//   //         // Now, set the products after the order is fully set
+//   //         setProducts(mergedWithStock);
+//   //       }
+//   //     } catch (error) {
+//   //       console.error("Error fetching order details", error);
+//   //     }
+//   //     setLoading(false);
+//   //   };
+
+//   //   fetchOrderDetails();
+//   // }, [id]);
+
 //   useEffect(() => {
 //     const fetchOrderDetails = async () => {
 //       setLoading(true);
 //       try {
-//         const response = await axios.get(`${ApiURL}/order/getOrder/${id}`);
-//         console.log("res data: ", response.data);
-
-//         if (response.data.order) {
+//         if (order) {
 //           // First, set the order data
-//           setOrder(response.data.order);
+//           setOrder(order);
 
 //           let mergedProducts = [];
 
 //           // Process order slots to merge products
-//           if (
-//             Array.isArray(response.data.order.slots) &&
-//             response.data.order.slots.length > 0
-//           ) {
-//             response.data.order.slots.forEach((slot) => {
+//           if (Array.isArray(order.slots) && order.slots.length > 0) {
+//             order.slots.forEach((slot) => {
 //               if (Array.isArray(slot.products)) {
 //                 slot.products.forEach((p) => {
 //                   mergedProducts.push({
 //                     ...p,
-//                     unitPrice: p.total / (p.quantity),
+//                     unitPrice: p.total / p.quantity,
 //                   });
 //                 });
 //               }
@@ -218,23 +320,26 @@
 //           // If no products in slots, use products directly from the order
 //           if (
 //             mergedProducts.length === 0 &&
-//             Array.isArray(response.data.order.products) &&
-//             response.data.order.products[0]?.productName
+//             Array.isArray(order.products) &&
+//             order.products[0]?.productName
 //           ) {
-//             mergedProducts = response.data.order.products.map((p) => ({
+//             mergedProducts = order.products.map((p) => ({
 //               ...p,
-//               unitPrice: p.total / (p.quantity),
+//               unitPrice: p.total / p.quantity,
 //             }));
 //           }
 
-//           console.log("mergedProducts: ",mergedProducts)
+//           console.log("mergedProducts: ", mergedProducts);
 //           // Fetch available stock for all products and inject it into the mergedProducts array
-//           const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
+//           const stockMap = await fetchAvailableStockForAllProducts(
+//             mergedProducts
+//           );
 
 //           // Merge the stock data with products
 //           const mergedWithStock = mergedProducts.map((prod) => ({
 //             ...prod,
-//             availableStock: stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
+//             availableStock:
+//               stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
 //           }));
 
 //           // Now, set the products after the order is fully set
@@ -247,13 +352,17 @@
 //     };
 
 //     fetchOrderDetails();
-//   }, [id]);
+//   }, [order]);
 
-//   useEffect(() => {
-//     fetchAllProducts();
-//   }, []);
+//   // useEffect(() => {
+//   //   console.log({products})
+//   // }, [products])
+
+//   // useEffect(() => {
+//   //   fetchAllProducts();
+//   // }, []);
 //   // Calculate grand total based on products
-//   const grandTotal = products.reduce((sum, p) => sum + Number(p.total || 0), 0);
+//   // const grandTotal = products.reduce((sum, p) => sum + Number(p.total || 0), 0);
 
 //   // Add Product Modal logic
 //   const addedProductIds = products.map((p) => String(p.productId || p._id));
@@ -267,6 +376,7 @@
 //     setAddQty(1);
 //     setSelectedAddProduct(null);
 //   };
+
 //   const handleCloseAdd = () => {
 //     setShowAdd(false);
 //     setAddProductId("");
@@ -285,8 +395,8 @@
 //       );
 
 //       try {
-//         console.log("order quotedate: ", order.slots[0].quoteDate)
-//         console.log("order enddate: ", order.slots[0].endDate)
+//         console.log("order quotedate: ", order.slots[0].quoteDate);
+//         console.log("order enddate: ", order.slots[0].endDate);
 //         const res = await axios.post(
 //           `${ApiURL}/inventory/product/filter/${productId}`,
 //           {},
@@ -322,8 +432,10 @@
 //     }
 //   };
 
-//   const handleAddProduct = () => {
+//   const handleAddProduct = async () => {
 //     if (!selectedAddProduct || !addQty) return;
+//     // console.log("selectedAddProduct: ", selectedAddProduct)
+//     // const productSlot = productDates[selectedAddProduct._id]?.productSlot || order.slots[0].quoteTime;
 
 //     // Prepare new product object
 //     const newProduct = {
@@ -336,8 +448,50 @@
 //       availableStock: selectedAddProduct.availableStock,
 //     };
 
-//     setProducts((prev) => [...prev, newProduct]);
-//     setShowAdd(false);
+//     const requestData = {
+//       productId: selectedAddProduct._id, // ID of the selected product to update
+//       productName: selectedAddProduct.ProductName,
+//       unitPrice: Number(selectedAddProduct.ProductPrice),
+//       quantity: addQty, // Updated quantity for the product
+//       quoteDate: order.slots[0].quoteDate, // Start date from the first slot
+//       endDate: order.slots[0].endDate, // End date from the first slot
+//       isNewProduct: true, // Flag to mark it as a new product addition
+//       productQuoteDate: order.slots[0].quoteDate,
+//       productEndDate: order.slots[0].endDate,
+//       productSlot: "Slot 1: 7:00 AM to 11:00 PM",
+//     };
+
+//     // Log the request data to console
+//     console.log("Request Data to be sent:", requestData);
+
+//     try {
+//       // Send the updated quantity to the backend for processing
+//       const response = await axios.put(
+//         `${ApiURL}/order/updateOrderById/${order._id}`,
+//         {
+//           productId: selectedAddProduct._id,
+//           productName: selectedAddProduct.ProductName,
+//           unitPrice: Number(selectedAddProduct.ProductPrice),
+//           quantity: addQty, // The new quantity
+//           quoteDate: order.slots[0].quoteDate, // Start date of the slot
+//           endDate: order.slots[0].endDate, // End date of the slot
+//           isNewProduct: true,
+//           productQuoteDate: order.slots[0].quoteDate,
+//           productEndDate: order.slots[0].endDate,
+//           productSlot: "Slot 1: 7:00 AM to 11:00 PM",
+//         }
+//       );
+//       if (response.status === 200) {
+//         console.log(`response is 200. added successfully`);
+//         fetchOrderDetails();
+//         // setProducts((prev) => [...prev, newProduct]);
+//       }
+//     } catch (error) {
+//       console.error("Error setting up the request:", error.message);
+//       toast.error("An unexpected error occurred. Please try again.");
+//     } finally {
+//       setShowAdd(false);
+//     }
 //   };
 
 //   // Edit product logic
@@ -346,40 +500,161 @@
 //     setEditQty(qty);
 //   };
 
-//   const handleEditSave = (idx) => {
-//     if (editQty < 1 || editQty > (products[idx].availableStock || 1)) {
+//   const handleEditSave = async (idx) => {
+//     // Ensure the quantity is valid based on the available stock
+//     const availableStock = order.slots[0].products[idx].availableStock;
+//     const currentQuantity = order.slots[0].products[idx].quantity;
+
+//     if (editQty < 1 || editQty > (availableStock + currentQuantity || 1)) {
 //       toast.error("Quantity must be between 1 and available stock!");
 //       return;
 //     }
-//     setProducts((prev) =>
-//       prev.map((prod, i) =>
-//         i === idx
-//           ? {
-//             ...prod,
-//             quantity: editQty,
-//             total: editQty * prod.unitPrice,
-//           }
-//           : prod
-//       )
+
+//     const productObj = allProducts.find(
+//       (p) => String(p._id) === String(order.slots[0].products[idx].productId)
 //     );
+
+//     console.log(`productObj edited: `, productObj);
+//     console.log("productDates.productSlot: ", productDates.productSlot);
+
+//     try {
+//       // Send the updated quantity to the backend for processing
+//       console.log("productDates: ", productDates);
+//       // Sample logic to create the response object
+//       const productId = order.slots[0].products[idx].productId; // The product ID being updated
+//       // const editQty = 5; // New quantity value (for example)
+//       // const editQty = order.slots[0].products[idx].; // New quantity value (for example)
+//       const productSlot =
+//         productDates[order.slots[0].products[idx].productId]?.productSlot ||
+//         order.slots[0].products[idx].productSlot;
+//       const productQuoteDate = formatDateToDDMMYYYY(
+//         productDates[order.slots[0].products[idx].productId]
+//           ?.productQuoteDate || order.slots[0].quoteDate
+//       );
+//       const productEndDate = formatDateToDDMMYYYY(
+//         productDates[order.slots[0].products[idx].productId]?.productEndDate ||
+//           order.slots[0].endDate
+//       );
+
+//       const responseObj = {
+//         productId: productId, // The ID of the product being updated
+//         quantity: editQty, // The new quantity
+//         quoteDate: order.slots[0].quoteDate, // Start date of the slot
+//         endDate: order.slots[0].endDate, // End date of the slot
+//         productSlot: productSlot, // Slot information
+//         productQuoteDate: productQuoteDate, // Quote date for the product
+//         productEndDate: productEndDate, // End date for the product
+//       };
+
+//       console.log("Generated response object:", responseObj);
+
+//       const response = await axios.put(
+//         `${ApiURL}/order/updateOrderById/${order._id}`,
+//         {
+//           productId: order.slots[0].products[idx].productId, // The ID of the product being updated
+//           // unitPrice: productObj.ProductPrice,
+//           quantity: editQty, // The new quantity
+//           quoteDate: order.slots[0].quoteDate, // Start date of the slot
+//           endDate: order.slots[0].endDate, // End date of the slot
+//           productQuoteDate: productQuoteDate || order.slots[0].quoteDate,
+//           productEndDate: productEndDate || order.slots[0].endDate,
+//           productSlot, // Slot information
+//         }
+//       );
+
+//       if (response.status === 200) {
+//         // const updatedAvailableStock = response.data.availableStock; // Get the latest available stock
+//         // order.slots[0].products[idx].availableStock=
+//         fetchOrderDetails();
+
+//         // Update the products state with the new quantity and total
+//         setProducts((prev) =>
+//           prev.map((prod, i) =>
+//             i === idx
+//               ? {
+//                   ...prod,
+//                   quantity: editQty, // Set the updated quantity
+//                   total: editQty * prod.unitPrice, // Recalculate the total based on the new quantity
+//                 }
+//               : prod
+//           )
+//         );
+
+//         toast.success("Quantity updated successfully!");
+//       } else {
+//         // If the response is not successful, show an error
+//         toast.error("Failed to update order. Please try again.");
+//       }
+//     } catch (error) {
+//       // Handle any errors during the Axios request
+//       console.error("Error updating order:", error);
+//       toast.error("An error occurred while updating the order.");
+//     }
+
+//     // Reset the editing state after successful update
 //     setEditIdx(null);
 //     setEditQty(1);
 //   };
 
-//   // Delete product logic
-//   const handleDelete = (idx) => {
-//     if (!window.confirm("Delete this product?")) return;
-//     setProducts((prev) => prev.filter((_, i) => i !== idx));
+//   // // Delete product logic
+//   // const handleDelete = (idx) => {
+//   //   if (!window.confirm("Delete this product?")) return;
+//   //   setProducts((prev) => prev.filter((_, i) => i !== idx));
+//   // };
+
+//   const handleDelete = async (idx) => {
+//     const product = order.slots[0].products[idx]; // Get the product to delete
+//     const productId = product.productId;
+//     const quantity = product.quantity;
+//     const quoteDate = order.slots[0].quoteDate;
+//     const endDate = order.slots[0].endDate;
+
+//     // Ask for confirmation before deleting
+//     const confirmDelete = window.confirm(
+//       "Are you sure you want to delete this product?"
+//     );
+//     if (!confirmDelete) return; // If user cancels, do nothing
+
+//     try {
+//       // Send the delete request to the backend
+//       const response = await axios.delete(
+//         `${ApiURL}/order/deleteProductInOrderById/${order._id}`,
+//         {
+//           data: {
+//             productId, // Product ID to delete
+//             quantity, // Quantity of the product being removed
+//             quoteDate, // Start date of the slot
+//             endDate, // End date of the slot
+//           },
+//         }
+//       );
+
+//       if (response.status === 200) {
+//         // Successfully deleted, fetch the updated order details from the backend
+//         fetchOrderDetails();
+
+//         toast.success("Product deleted successfully!");
+//       } else {
+//         // If the response is not successful, show an error
+//         toast.error("Failed to delete product. Please try again.");
+//       }
+//     } catch (error) {
+//       console.error("Error deleting product:", error);
+//       toast.error("An error occurred while deleting the product.");
+//     }
 //   };
 
 //   // Refurbishment modal handlers
 //   const handleAddRefProduct = () => {
 //     if (!refProduct || !refQty || !refPrice) return;
+//     console.log("refProduct :", refProduct);
+//     console.log("refQTy :", refQty);
+//     console.log("refPrice :", refPrice);
 //     setAddedRefProducts((prev) => [
 //       ...prev,
 //       {
 //         productName: refProduct,
-//         qty: Number(refQty),
+//         quantity: Number(refQty),
 //         price: refPrice,
 //         damage: refDamage,
 //       },
@@ -401,34 +676,127 @@
 //     setFloorManager("");
 //   };
 
-//   useEffect(()=>{
-//     fetchAvailableStockForAllProducts()
-//   },[products])
-
 //   const fetchAvailableStockForAllProducts = async (products) => {
 //     const productIds = Array.from(
-//       new Set(products.map((prod) => prod.productId || prod._id))
+//       new Set(products?.map((prod) => prod.productId || prod._id))
 //     );
 //     if (productIds.length === 0) return {};
 
-//     console.log("order: ", order)
-//     console.log("startDate: ", order?.slots[0].quoteDate)
-//     console.log("endDate: ", order?.slots[0].endDate)
+//     console.log("order.slots.products: ", order.slots[0].products);
+//     console.log("startDate: ", order?.slots[0].quoteDate);
+//     console.log("endDate: ", order?.slots[0].endDate);
 
 //     try {
 //       const response = await axios.get(`${ApiURL}/inventory/filter`, {
-//         params: { products: productIds.join(","), startDate: order?.slots[0].quoteDate, endDate: order?.slots[0].endDate },
+//         params: {
+//           products: productIds.join(","),
+//           startDate: order?.slots[0].quoteDate,
+//           endDate: order?.slots[0].endDate,
+//         },
 //       });
 //       // Assume response.data.stock is [{ productId, availableStock }]
 //       const stockMap = {};
 //       (response.data.stock || []).forEach((item) => {
 //         stockMap[item.productId] = item.availableStock;
 //       });
-//       console.log("stockmap: ",stockMap) 
+//       console.log("stockmap: ", stockMap);
 //       return stockMap;
 //     } catch (error) {
 //       console.error("Error fetching available stock for all products:", error);
 //       return {};
+//     }
+//   };
+
+//   const getRefurbishmentByOrderId = async () => {
+//     try {
+//       const response = await fetch(`${ApiURL}/refurbishment/${id}`);
+//       console.log(response, "response");
+//       const data = await response.json();
+//       setRefurbishmentdata(data);
+//     } catch (error) {
+//       console.error("Error fetching refurbishment:", error);
+//     }
+//   };
+
+//   const calculateGrandTotal = (order) => {
+//     const productTotal = (order.slots || []).reduce((acc, slot) => {
+//       return (
+//         acc + (slot.products || []).reduce((sum, p) => sum + (p.total || 0), 0)
+//       );
+//     }, 0);
+
+//     // console.log("order.slots.prods: ", order.slots[0].products)
+//     // order.slots[0].products.forEach((product, index) => {
+//     //   console.log(`${index}: `, product);  // This will print each product object individually
+//     // });
+
+//     const labour = order.labourecharge || 0;
+//     const transport = order.transportcharge || 0;
+//     const discountPercent = order.discount || 0;
+//     const gstPercent = order.GST || 0;
+//     const adjustments = order.adjustments || 0;
+
+//     const subtotal = productTotal + labour + transport - adjustments;
+//     const discountAmount = (subtotal * discountPercent) / 100;
+//     const gstAmount = ((subtotal - discountAmount) * gstPercent) / 100;
+
+//     // console.log("calc: ", subtotal - discountAmount + gstAmount)
+
+//     return Math.round(subtotal - discountAmount + gstAmount);
+//   };
+
+//   const grandTotal = order ? calculateGrandTotal(order) : 0;
+
+//   useEffect(() => {
+//     console.log("useeffect");
+//     fetchOrderDetails();
+//     fetchAllProducts();
+//   }, []);
+
+//   useEffect(() => {
+//     fetchAvailableStockForAllProducts();
+//   }, [products]);
+
+//   useEffect(() => {
+//     if (order) {
+//       fetchFilteredInventoryForOrder();
+//     }
+//   }, [order]);
+
+//   useEffect(() => {
+//     getRefurbishmentByOrderId();
+//   }, [id]);
+
+//   const navigateToDetails = (_id) => {
+//     // Navigate to the next page and pass the `_id` in state
+//     navigate("/invoice", { state: { id: _id } });
+//   };
+
+//   const handleDateChange = (productId, dateType, date, productData) => {
+//     console.log({ productId, dateType, date, productData });
+//     // Update the productDates state with the new date and slot value
+//     setProductDates((prev) => ({
+//       ...prev,
+//       [productId]: {
+//         ...prev[productId],
+//         [dateType]: date,
+//         productData,
+//       },
+//     }));
+//   };
+
+//   console.log("productDates: ", productDates);
+
+//   const handleCancelOrder = async () => {
+//     try {
+//       const res = await axios.post(`${ApiURL}/order/cancel-slot`, {
+//         orderId: order._id,
+//       });
+//       if (res.status === 200) {
+//         setOrder(res.data.order); // <-- Make sure your backend returns the order details
+//       }
+//     } catch (error) {
+//       console.error("Error fetching order details:", error);
 //     }
 //   };
 
@@ -444,13 +812,15 @@
 //     return <div>Loading...</div>;
 //   }
 
-//   const handleClickHello = () => {
-//     console.log("handleClickHello: ", order.slots[0])
-//   }
+//   const deliveryDismantleSlots = [
+//     "Select Slots",
+//     "Slot 1: 7:00 AM to 11:00 PM",
+//     "Slot 2: 11:00 PM to 11:45 PM",
+//     "Slot 3: 7:30 AM to 4:00 PM",
+//   ];
 
 //   return (
 //     <div className="p-3" style={{ background: "#f6f8fa", minHeight: "100vh" }}>
-//       <button onClick={handleClickHello}>heelo</button>
 //       <Card className="shadow-sm mb-4" style={{ borderRadius: 12 }}>
 //         <Card.Body>
 //           <h6 className="mb-3" style={{ fontWeight: 700, fontSize: 17 }}>
@@ -504,6 +874,7 @@
 //                 size="sm"
 //                 style={{ fontSize: 12, padding: "2px 14px", marginRight: 8 }}
 //                 onClick={handleShowAdd}
+//                 disabled={order && order.orderStatus === "cancelled"}
 //               >
 //                 Add Product
 //               </Button>
@@ -512,6 +883,7 @@
 //                 size="sm"
 //                 style={{ fontSize: 12, padding: "2px 14px" }}
 //                 onClick={() => setShowRefModal(true)}
+//                 disabled={order && order.orderStatus === "cancelled"}
 //               >
 //                 Add Refurbishment
 //               </Button>
@@ -525,7 +897,7 @@
 //             >
 //               <thead>
 //                 <tr style={{ background: "#f3f6fa" }}>
-//                   <th style={{ width: "35%" }}>Slot</th>
+//                   <th>Slot Date</th>
 //                   <th>Product Name</th>
 //                   <th>Available Stock</th>
 //                   <th>Selected Qty</th>
@@ -541,9 +913,128 @@
 //                       : "No Slot";
 //                   return (
 //                     <tr key={idx}>
-//                       <td style={{ fontWeight: 500, color: "#444" }}>
-//                         {slotDate}
+//                       <td style={{ verticalAlign: "middle", width: "25%" }}>
+//                         {editIdx === idx ? (
+//                           <>
+//                             <div className="d-flex">
+//                               <DatePicker
+//                                 selected={
+//                                   productDates[prod.productId]
+//                                     ?.productQuoteDate ||
+//                                   parseDate(prod.productQuoteDate)
+//                                 }
+//                                 onChange={(date) =>
+//                                   handleDateChange(
+//                                     prod.productId,
+//                                     "productQuoteDate",
+//                                     date,
+//                                     prod.productQuoteDate ||
+//                                       order?.slots[0]?.quoteTime
+//                                   )
+//                                 }
+//                                 dateFormat="dd/MM/yyyy"
+//                                 className="form-control"
+//                                 minDate={parseDate(order.slots[0].quoteDate)} // Ensure date is within range
+//                                 maxDate={parseDate(order.slots[0].endDate)} // Ensure date is within range
+//                                 disabled={
+//                                   order && order.orderStatus === "cancelled"
+//                                 }
+//                               />
+//                               <DatePicker
+//                                 selected={
+//                                   productDates[prod.productId]
+//                                     ?.productEndDate ||
+//                                   parseDate(prod.productEndDate)
+//                                 }
+//                                 onChange={(date) =>
+//                                   handleDateChange(
+//                                     prod.productId,
+//                                     "productEndDate",
+//                                     date,
+//                                     prod.productEndDate ||
+//                                       order?.slots[0]?.endTime
+//                                   )
+//                                 }
+//                                 dateFormat="dd/MM/yyyy"
+//                                 className="form-control"
+//                                 minDate={parseDate(order.slots[0].quoteDate)}
+//                                 maxDate={parseDate(order.slots[0].endDate)}
+//                                 disabled={
+//                                   order && order.orderStatus === "cancelled"
+//                                 }
+//                               />
+//                             </div>
+//                             <Form.Select
+//                               className="m-0 mt-1"
+//                               value={
+//                                 productDates[prod.productId]?.productSlot ||
+//                                 prod.productSlot
+//                               }
+//                               onChange={(e) =>
+//                                 handleDateChange(
+//                                   prod.productId,
+//                                   "productSlot",
+//                                   e.target.value,
+//                                   e.target.value
+//                                 )
+//                               }
+//                               disabled={
+//                                 order && order.orderStatus === "cancelled"
+//                               }
+//                             >
+//                               {deliveryDismantleSlots.map((s) => (
+//                                 <option key={s} value={s}>
+//                                   {s}
+//                                 </option>
+//                               ))}
+//                             </Form.Select>
+//                           </>
+//                         ) : (
+//                           <>
+//                             {/* If not in edit mode, just show the date and slot */}
+//                             <span
+//                               style={{
+//                                 fontSize: "14px",
+//                                 fontWeight: "500",
+//                                 color: "#444",
+//                                 marginRight: "10px",
+//                               }}
+//                             >
+//                               {/* Show productQuoteDate */}
+//                               {productDates[prod.productId]?.productQuoteDate
+//                                 ? formatDateToDDMMYYYY(
+//                                     productDates[prod.productId]
+//                                       ?.productQuoteDate
+//                                   )
+//                                 : order?.slots[0]?.quoteDate ||
+//                                   "No date available"}
+//                               {"    "}
+//                               <span style={{ paddingLeft: "10px" }}>To</span>
+//                             </span>
+//                             <span
+//                               style={{
+//                                 fontSize: "14px",
+//                                 fontWeight: "500",
+//                                 color: "#444",
+//                               }}
+//                             >
+//                               {/* Show productEndDate */}
+//                               {productDates[prod.productId]?.productEndDate
+//                                 ? formatDateToDDMMYYYY(
+//                                     productDates[prod.productId]?.productEndDate
+//                                   )
+//                                 : order?.slots[0]?.endDate ||
+//                                   "No date available"}
+//                             </span>
+//                             {/* Show productSlot */}
+//                             <div>
+//                               {productDates[prod.productId]?.productSlot ||
+//                                 prod.productSlot}
+//                             </div>
+//                           </>
+//                         )}
 //                       </td>
+
 //                       <td>{prod.productName}</td>
 //                       <td>
 //                         <span style={{ color: "#1a73e8", fontWeight: 500 }}>
@@ -555,7 +1046,7 @@
 //                           <Form.Control
 //                             type="number"
 //                             min={1}
-//                             max={prod.availableStock}
+//                             max={prod.availableStock + prod.quantity}
 //                             value={editQty}
 //                             onChange={(e) => {
 //                               let val = e.target.value.replace(/^0+/, "");
@@ -563,9 +1054,12 @@
 //                                 val === ""
 //                                   ? ""
 //                                   : Math.max(
-//                                     1,
-//                                     Math.min(Number(val), prod.availableStock)
-//                                   )
+//                                       1,
+//                                       Math.min(
+//                                         Number(val),
+//                                         prod.availableStock + prod.quantity
+//                                       )
+//                                     )
 //                               );
 //                             }}
 //                             style={{
@@ -607,6 +1101,9 @@
 //                               size="sm"
 //                               style={{ color: "#157347", padding: 0 }}
 //                               onClick={() => handleEdit(idx, prod.quantity)}
+//                               disabled={
+//                                 order && order.orderStatus === "cancelled"
+//                               }
 //                             >
 //                               <FaEdit />
 //                             </Button>
@@ -619,6 +1116,9 @@
 //                                 marginLeft: 8,
 //                               }}
 //                               onClick={() => handleDelete(idx)}
+//                               disabled={
+//                                 order && order.orderStatus === "cancelled"
+//                               }
 //                             >
 //                               <FaTrashAlt />
 //                             </Button>
@@ -649,14 +1149,19 @@
 //                 </tr>
 //               </thead>
 //               <tbody>
-//                 {addedRefProducts.map((item, idx) => (
-//                   <tr key={idx}>
-//                     <td>{item.productName}</td>
-//                     <td>{item.qty}</td>
-//                     <td>₹{item.price}</td>
-//                     <td>{item.damage}</td>
-//                   </tr>
-//                 ))}
+//                 {refurbishmentdata?.products?.map((ele) => {
+//                   return (
+//                     <tr>
+//                       <td className="border-b p-2">{ele?.productName}</td>
+//                       <td className="border-b p-2">{ele.quantity}</td>
+//                       <td className="border-b p-2">₹{ele.price}</td>
+//                       <td className="border-b p-2">{ele.damage}</td>
+//                       <td className="border-b p-2">
+//                         {ele.shippingaddressrefurbishment}
+//                       </td>
+//                     </tr>
+//                   );
+//                 })}
 //               </tbody>
 //             </Table>
 //           </div>
@@ -665,7 +1170,8 @@
 //               variant="primary"
 //               size="sm"
 //               style={{ fontSize: 13, fontWeight: 600 }}
-//               onClick={() => navigate(`/invoice/12`)}
+//               onClick={() => navigate(`/invoice/${id}`)}
+//               disabled={order && order.orderStatus === "cancelled"}
 //             >
 //               Generate Invoice
 //             </Button>
@@ -673,6 +1179,8 @@
 //               variant="info"
 //               size="sm"
 //               style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}
+//               onClick={() => navigate(`/refurbishment-invoice/${id}`)}
+//               disabled={order && order.orderStatus === "cancelled"}
 //             >
 //               Refurbishment Invoice
 //             </Button>
@@ -680,6 +1188,8 @@
 //               variant="danger"
 //               size="sm"
 //               style={{ fontSize: 13, fontWeight: 600 }}
+//               onClick={handleCancelOrder}
+//               disabled={order && order.orderStatus === "cancelled"}
 //             >
 //               Cancel Order
 //             </Button>
@@ -704,10 +1214,10 @@
 //                 value={
 //                   addProductId
 //                     ? availableToAdd
-//                       .map((p) => ({ value: p._id, label: p.ProductName }))
-//                       .find(
-//                         (opt) => String(opt.value) === String(addProductId)
-//                       )
+//                         .map((p) => ({ value: p._id, label: p.ProductName }))
+//                         .find(
+//                           (opt) => String(opt.value) === String(addProductId)
+//                         )
 //                     : null
 //                 }
 //                 onChange={handleProductSelect}
@@ -763,8 +1273,9 @@
 //                   <Form.Label>Price</Form.Label>
 //                   <Form.Control
 //                     type="text"
-//                     value={`₹${selectedAddProduct ? selectedAddProduct.ProductPrice : 0
-//                       }`}
+//                     value={`₹${
+//                       selectedAddProduct ? selectedAddProduct.ProductPrice : 0
+//                     }`}
 //                     disabled
 //                   />
 //                 </Form.Group>
@@ -776,15 +1287,42 @@
 //                     type="text"
 //                     value={
 //                       selectedAddProduct
-//                         ? `₹${(addQty ? addQty : 1) *
-//                         selectedAddProduct.ProductPrice
-//                         }`
+//                         ? `₹${
+//                             (addQty ? addQty : 1) *
+//                             selectedAddProduct.ProductPrice
+//                           }`
 //                         : "₹0"
 //                     }
 //                     disabled
 //                   />
 //                 </Form.Group>
 //               </Col>
+//               {/* <Col xs={6}>
+//                 <Form.Group className="mb-3" controlId="addProductTotal">
+//                   <Form.Label>choose slot</Form.Label>
+//                   <Form.Select
+//                     className="m-0 mt-1"
+//                     value={
+//                       productDates[selectedAddProduct?.productId]?.productSlot ||
+//                       selectedAddProduct?.productSlot
+//                     } // Default to initial slot value
+//                     onChange={(e) =>
+//                       handleDateChange(
+//                         selectedAddProduct._id,
+//                         "productSlot",
+//                         e.target.value,
+//                         e.target.value
+//                       )
+//                     }
+//                   >
+//                     {deliveryDismantleSlots.map((s) => (
+//                       <option key={s} value={s}>
+//                         {s}
+//                       </option>
+//                     ))}
+//                   </Form.Select>
+//                 </Form.Group>
+//               </Col> */}
 //             </Row>
 //           </Form>
 //         </Modal.Body>
@@ -966,10 +1504,7 @@
 //           <Button
 //             variant="primary"
 //             disabled={!shippingAddress || addedRefProducts.length === 0}
-//             onClick={() => {
-//               // Submit logic here
-//               handleCloseRefModal();
-//             }}
+//             onClick={handleRefurbishment}
 //           >
 //             Submit
 //           </Button>
@@ -980,7 +1515,6 @@
 // };
 
 // export default OrderDetails;
-
 
 import React, { useState, useEffect } from "react";
 import {
@@ -994,12 +1528,13 @@ import {
   Spinner,
   Container,
 } from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
+import { useFetcher, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Select from "react-select";
 import { FaEdit, FaTrashAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { ApiURL } from "../../api";
 import { toast } from "react-hot-toast";
+import DatePicker from "react-datepicker";
 
 const labelStyle = {
   color: "#666",
@@ -1008,6 +1543,26 @@ const labelStyle = {
   minWidth: 110,
 };
 const valueStyle = { color: "#222", fontSize: 13, fontWeight: 400 };
+
+const parseDate = (str) => {
+  // console.log("parseDate str error: ", str)
+  if (!str) return null; // If date is undefined or null, return null.
+  const [day, month, year] = str.split("-"); // Assuming date format is DD-MM-YYYY
+  return new Date(`${year}-${month}-${day}`); // Convert to YYYY-MM-DD format for JavaScript Date
+};
+
+const formatDateToDDMMYYYY = (date) => {
+  if (!date) return null; // If date is null or undefined, return null.
+  if (!(date instanceof Date) || isNaN(date)) {
+    console.log("formatDateToDDMMYYYY date:", date);
+    return null;
+  }
+  const day = String(date.getDate()).padStart(2, "0"); // Add leading zero if needed
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Add leading zero if needed
+  const year = date.getFullYear();
+
+  return `${day}-${month}-${year}`; // Return in dd-mm-yyyy format
+};
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -1038,36 +1593,56 @@ const OrderDetails = () => {
   const [addedRefProducts, setAddedRefProducts] = useState([]);
   const [shippingAddress, setShippingAddress] = useState("");
   const [floorManager, setFloorManager] = useState("");
+  const [refurbishmentdata, setRefurbishmentdata] = useState({});
+  const [productDates, setProductDates] = useState({});
 
+  const handleRefurbishment = async () => {
+    try {
+      if (addedRefProducts.length === 0) {
+        toast.error("Please add at least one product");
+        return;
+      }
 
-  useEffect(() => {
-    console.log("useeffect");
-    fetchOrderDetails();
-    fetchAllProducts();
-  }, []); // This runs once on component mount
+      const payload = {
+        products: addedRefProducts,
+        shippingAddress,
+        floorManager,
+        status: "sent",
+        orderId: order._id,
+      };
 
-  useEffect(() => {
-    if (order) {
-      fetchFilteredInventoryForOrder();
+      const response = await axios.post(
+        `${ApiURL}/refurbishment/create`,
+        payload
+      );
+      if (response.status === 201) {
+        toast.success("Refurbishment submitted successfully");
+        handleCloseRefModal();
+      } else {
+        toast.error("Failed to submit refurbishment");
+      }
+    } catch (error) {
+      console.error("Error submitting refurbishment:", error);
+      toast.error("Error occurred while adding refurbishment");
     }
-  }, [order]); // Trigger this when order details are set
+  };
 
   // Fetching filtered inventory for the order details
   const fetchFilteredInventoryForOrder = async () => {
     console.log("order before fetch call: ", order);
-    console.log("products: ", products)
+    console.log("products: ", products);
     try {
       const response = await axios.get(`${ApiURL}/inventory/filter`, {
         params: {
-          startDate: order?.slots[0].quoteDate,  // Assuming `startDate` exists in the order
-          endDate: order?.slots[0].endDate,      // Assuming `endDate` exists in the order
-          products: order?.slots[0].products.map(p => p.productId).join(","),
+          startDate: order?.slots[0].quoteDate,
+          endDate: order?.slots[0].endDate,
+          products: order?.slots[0].products.map((p) => p.productId).join(","),
         },
       });
 
-      console.log(`${ApiURL}/inventory/filter: `, response.data);
+      console.log(`${ApiURL}/inventory/filter: `, response.data.stock);
       let filtered = response.data.stock || [];
-      console.log("filtered: ", filtered)
+      console.log("filtered: ", filtered);
 
       if (order?.slots?.length && filtered?.length) {
         // Loop through each slot in the order
@@ -1075,7 +1650,9 @@ const OrderDetails = () => {
           if (slot?.products?.length) {
             // Loop through each product in the slot's products
             slot.products = slot.products.map((product) => {
-              const stock = filtered.find((item) => item.productId === product.productId);
+              const stock = filtered.find(
+                (item) => item.productId === product.productId
+              );
 
               // If stock is found, inject availableStock into the product, otherwise default to 0
               return {
@@ -1087,12 +1664,14 @@ const OrderDetails = () => {
           return slot;
         });
 
-        console.log("order slots: ", order.slots[0].products[0])
+        console.log("order slots: ", order.slots[0].products[0]);
 
         // You can also update the top-level `products` if you want
         if (order?.products?.length) {
           order.products = order.products.map((product) => {
-            const stock = filtered.find((item) => item.productId === product.productId);
+            const stock = filtered.find(
+              (item) => item.productId === product.productId
+            );
 
             // Update the top-level product with available stock
             return {
@@ -1104,8 +1683,6 @@ const OrderDetails = () => {
 
         console.log("Updated order with available stock: ", order);
       }
-
-
 
       // // Directly inject available stock into each product in the order
       // if (order?.products?.length && filtered?.length) {
@@ -1139,7 +1716,6 @@ const OrderDetails = () => {
 
       // console.log("Updated order with available stock: ", updatedOrder);
       // }
-
     } catch (error) {
       console.error("Error fetching inventory for order:", error);
     }
@@ -1149,7 +1725,7 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       const res = await axios.get(`${ApiURL}/order/getOrder/${id}`);
-      console.log("fetchorder details: ", res.data)
+      console.log("fetchorder details: ", res.data);
       if (res.status === 200) {
         setOrder(res.data.order); // <-- Make sure your backend returns the order details
       }
@@ -1235,7 +1811,7 @@ const OrderDetails = () => {
   //   fetchOrderDetails();
   // }, [id]);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchOrderDetails = async () => {
       setLoading(true);
       try {
@@ -1246,16 +1822,13 @@ const OrderDetails = () => {
           let mergedProducts = [];
 
           // Process order slots to merge products
-          if (
-            Array.isArray(order.slots) &&
-            order.slots.length > 0
-          ) {
+          if (Array.isArray(order.slots) && order.slots.length > 0) {
             order.slots.forEach((slot) => {
               if (Array.isArray(slot.products)) {
                 slot.products.forEach((p) => {
                   mergedProducts.push({
                     ...p,
-                    unitPrice: p.total / (p.quantity),
+                    unitPrice: p.total / p.quantity,
                   });
                 });
               }
@@ -1270,18 +1843,21 @@ const OrderDetails = () => {
           ) {
             mergedProducts = order.products.map((p) => ({
               ...p,
-              unitPrice: p.total / (p.quantity),
+              unitPrice: p.total / p.quantity,
             }));
           }
 
-          console.log("mergedProducts: ", mergedProducts)
+          console.log("mergedProducts: ", mergedProducts);
           // Fetch available stock for all products and inject it into the mergedProducts array
-          const stockMap = await fetchAvailableStockForAllProducts(mergedProducts);
+          const stockMap = await fetchAvailableStockForAllProducts(
+            mergedProducts
+          );
 
           // Merge the stock data with products
           const mergedWithStock = mergedProducts.map((prod) => ({
             ...prod,
-            availableStock: stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
+            availableStock:
+              stockMap[prod.productId || prod._id] ?? prod.availableStock ?? 0,
           }));
 
           // Now, set the products after the order is fully set
@@ -1296,11 +1872,15 @@ const OrderDetails = () => {
     fetchOrderDetails();
   }, [order]);
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, []);
+  // useEffect(() => {
+  //   console.log({products})
+  // }, [products])
+
+  // useEffect(() => {
+  //   fetchAllProducts();
+  // }, []);
   // Calculate grand total based on products
-  const grandTotal = products.reduce((sum, p) => sum + Number(p.total || 0), 0);
+  // const grandTotal = products.reduce((sum, p) => sum + Number(p.total || 0), 0);
 
   // Add Product Modal logic
   const addedProductIds = products.map((p) => String(p.productId || p._id));
@@ -1314,6 +1894,7 @@ const OrderDetails = () => {
     setAddQty(1);
     setSelectedAddProduct(null);
   };
+
   const handleCloseAdd = () => {
     setShowAdd(false);
     setAddProductId("");
@@ -1332,8 +1913,8 @@ const OrderDetails = () => {
       );
 
       try {
-        console.log("order quotedate: ", order.slots[0].quoteDate)
-        console.log("order enddate: ", order.slots[0].endDate)
+        console.log("order quotedate: ", order.slots[0].quoteDate);
+        console.log("order enddate: ", order.slots[0].endDate);
         const res = await axios.post(
           `${ApiURL}/inventory/product/filter/${productId}`,
           {},
@@ -1369,8 +1950,10 @@ const OrderDetails = () => {
     }
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!selectedAddProduct || !addQty) return;
+    // console.log("selectedAddProduct: ", selectedAddProduct)
+    // const productSlot = productDates[selectedAddProduct._id]?.productSlot || order.slots[0].quoteTime;
 
     // Prepare new product object
     const newProduct = {
@@ -1383,8 +1966,50 @@ const OrderDetails = () => {
       availableStock: selectedAddProduct.availableStock,
     };
 
-    setProducts((prev) => [...prev, newProduct]);
-    setShowAdd(false);
+    const requestData = {
+      productId: selectedAddProduct._id, // ID of the selected product to update
+      productName: selectedAddProduct.ProductName,
+      unitPrice: Number(selectedAddProduct.ProductPrice),
+      quantity: addQty, // Updated quantity for the product
+      quoteDate: order.slots[0].quoteDate, // Start date from the first slot
+      endDate: order.slots[0].endDate, // End date from the first slot
+      isNewProduct: true, // Flag to mark it as a new product addition
+      productQuoteDate: order.slots[0].quoteDate,
+      productEndDate: order.slots[0].endDate,
+      productSlot: "Slot 1: 7:00 AM to 11:00 PM",
+    };
+
+    // Log the request data to console
+    console.log("Request Data to be sent:", requestData);
+
+    try {
+      // Send the updated quantity to the backend for processing
+      const response = await axios.put(
+        `${ApiURL}/order/updateOrderById/${order._id}`,
+        {
+          productId: selectedAddProduct._id,
+          productName: selectedAddProduct.ProductName,
+          unitPrice: Number(selectedAddProduct.ProductPrice),
+          quantity: addQty, // The new quantity
+          quoteDate: order.slots[0].quoteDate, // Start date of the slot
+          endDate: order.slots[0].endDate, // End date of the slot
+          isNewProduct: true,
+          productQuoteDate: order.slots[0].quoteDate,
+          productEndDate: order.slots[0].endDate,
+          productSlot: "Slot 1: 7:00 AM to 11:00 PM",
+        }
+      );
+      if (response.status === 200) {
+        console.log(`response is 200. added successfully`);
+        fetchOrderDetails();
+        // setProducts((prev) => [...prev, newProduct]);
+      }
+    } catch (error) {
+      console.error("Error setting up the request:", error.message);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setShowAdd(false);
+    }
   };
 
   // Edit product logic
@@ -1393,40 +2018,161 @@ const OrderDetails = () => {
     setEditQty(qty);
   };
 
-  const handleEditSave = (idx) => {
-    if (editQty < 1 || editQty > (products[idx].availableStock || 1)) {
+  const handleEditSave = async (idx) => {
+    // Ensure the quantity is valid based on the available stock
+    const availableStock = order.slots[0].products[idx].availableStock;
+    const currentQuantity = order.slots[0].products[idx].quantity;
+
+    if (editQty < 1 || editQty > (availableStock + currentQuantity || 1)) {
       toast.error("Quantity must be between 1 and available stock!");
       return;
     }
-    setProducts((prev) =>
-      prev.map((prod, i) =>
-        i === idx
-          ? {
-            ...prod,
-            quantity: editQty,
-            total: editQty * prod.unitPrice,
-          }
-          : prod
-      )
+
+    const productObj = allProducts.find(
+      (p) => String(p._id) === String(order.slots[0].products[idx].productId)
     );
+
+    console.log(`productObj edited: `, productObj);
+    console.log("productDates.productSlot: ", productDates.productSlot);
+
+    try {
+      // Send the updated quantity to the backend for processing
+      console.log("productDates: ", productDates);
+      // Sample logic to create the response object
+      const productId = order.slots[0].products[idx].productId; // The product ID being updated
+      // const editQty = 5; // New quantity value (for example)
+      // const editQty = order.slots[0].products[idx].; // New quantity value (for example)
+      const productSlot =
+        productDates[order.slots[0].products[idx].productId]?.productSlot ||
+        order.slots[0].products[idx].productSlot;
+      const productQuoteDate = formatDateToDDMMYYYY(
+        productDates[order.slots[0].products[idx].productId]
+          ?.productQuoteDate || order.slots[0].quoteDate
+      );
+      const productEndDate = formatDateToDDMMYYYY(
+        productDates[order.slots[0].products[idx].productId]?.productEndDate ||
+          order.slots[0].endDate
+      );
+
+      const responseObj = {
+        productId, // The ID of the product being updated
+        quantity: editQty, // The new quantity
+        quoteDate: order.slots[0].quoteDate, // Start date of the slot
+        endDate: order.slots[0].endDate, // End date of the slot
+        productSlot, // Slot information
+        productQuoteDate, // Quote date for the product
+        productEndDate, // End date for the product
+      };
+
+      console.log("Generated response object:", responseObj);
+
+      const response = await axios.put(
+        `${ApiURL}/order/updateOrderById/${order._id}`,
+        {
+          productId: order.slots[0].products[idx].productId, // The ID of the product being updated
+          // unitPrice: productObj.ProductPrice,
+          quantity: editQty, // The new quantity
+          quoteDate: order.slots[0].quoteDate, // Start date of the slot
+          endDate: order.slots[0].endDate, // End date of the slot
+          productQuoteDate: productQuoteDate || order.slots[0].quoteDate,
+          productEndDate: productEndDate || order.slots[0].endDate,
+          productSlot, // Slot information
+        }
+      );
+
+      if (response.status === 200) {
+        // const updatedAvailableStock = response.data.availableStock; // Get the latest available stock
+        // order.slots[0].products[idx].availableStock=
+        fetchOrderDetails();
+
+        // Update the products state with the new quantity and total
+        setProducts((prev) =>
+          prev.map((prod, i) =>
+            i === idx
+              ? {
+                  ...prod,
+                  quantity: editQty, // Set the updated quantity
+                  total: editQty * prod.unitPrice, // Recalculate the total based on the new quantity
+                }
+              : prod
+          )
+        );
+
+        toast.success("Quantity updated successfully!");
+      } else {
+        // If the response is not successful, show an error
+        toast.error("Failed to update order. Please try again.");
+      }
+    } catch (error) {
+      // Handle any errors during the Axios request
+      console.error("Error updating order:", error);
+      toast.error("An error occurred while updating the order.");
+    }
+
+    // Reset the editing state after successful update
     setEditIdx(null);
     setEditQty(1);
   };
 
-  // Delete product logic
-  const handleDelete = (idx) => {
-    if (!window.confirm("Delete this product?")) return;
-    setProducts((prev) => prev.filter((_, i) => i !== idx));
+  // // Delete product logic
+  // const handleDelete = (idx) => {
+  //   if (!window.confirm("Delete this product?")) return;
+  //   setProducts((prev) => prev.filter((_, i) => i !== idx));
+  // };
+
+  const handleDelete = async (idx) => {
+    const product = order.slots[0].products[idx]; // Get the product to delete
+    const productId = product.productId;
+    const quantity = product.quantity;
+    const quoteDate = order.slots[0].quoteDate;
+    const endDate = order.slots[0].endDate;
+
+    // Ask for confirmation before deleting
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (!confirmDelete) return; // If user cancels, do nothing
+
+    try {
+      // Send the delete request to the backend
+      const response = await axios.delete(
+        `${ApiURL}/order/deleteProductInOrderById/${order._id}`,
+        {
+          data: {
+            productId, // Product ID to delete
+            quantity, // Quantity of the product being removed
+            quoteDate, // Start date of the slot
+            endDate, // End date of the slot
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Successfully deleted, fetch the updated order details from the backend
+        fetchOrderDetails();
+
+        toast.success("Product deleted successfully!");
+      } else {
+        // If the response is not successful, show an error
+        toast.error("Failed to delete product. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("An error occurred while deleting the product.");
+    }
   };
 
   // Refurbishment modal handlers
   const handleAddRefProduct = () => {
     if (!refProduct || !refQty || !refPrice) return;
+    console.log("refProduct :", refProduct);
+    console.log("refQTy :", refQty);
+    console.log("refPrice :", refPrice);
     setAddedRefProducts((prev) => [
       ...prev,
       {
         productName: refProduct,
-        qty: Number(refQty),
+        quantity: Number(refQty),
         price: refPrice,
         damage: refDamage,
       },
@@ -1448,34 +2194,128 @@ const OrderDetails = () => {
     setFloorManager("");
   };
 
-  useEffect(() => {
-    fetchAvailableStockForAllProducts()
-  }, [products])
-
   const fetchAvailableStockForAllProducts = async (products) => {
     const productIds = Array.from(
       new Set(products?.map((prod) => prod.productId || prod._id))
     );
     if (productIds.length === 0) return {};
 
-    console.log("order: ", order)
-    console.log("startDate: ", order?.slots[0].quoteDate)
-    console.log("endDate: ", order?.slots[0].endDate)
+    console.log("order.slots.products: ", order.slots[0].products);
+    console.log("startDate: ", order?.slots[0].quoteDate);
+    console.log("endDate: ", order?.slots[0].endDate);
 
     try {
       const response = await axios.get(`${ApiURL}/inventory/filter`, {
-        params: { products: productIds.join(","), startDate: order?.slots[0].quoteDate, endDate: order?.slots[0].endDate },
+        params: {
+          products: productIds.join(","),
+          startDate: order?.slots[0].quoteDate,
+          endDate: order?.slots[0].endDate,
+        },
       });
       // Assume response.data.stock is [{ productId, availableStock }]
       const stockMap = {};
       (response.data.stock || []).forEach((item) => {
         stockMap[item.productId] = item.availableStock;
       });
-      console.log("stockmap: ", stockMap)
+      console.log("stockmap: ", stockMap);
       return stockMap;
     } catch (error) {
       console.error("Error fetching available stock for all products:", error);
       return {};
+    }
+  };
+
+  const getRefurbishmentByOrderId = async () => {
+    try {
+      const response = await fetch(`${ApiURL}/refurbishment/${id}`);
+      console.log(response, "response");
+      const data = await response.json();
+      setRefurbishmentdata(data);
+    } catch (error) {
+      console.error("Error fetching refurbishment:", error);
+    }
+  };
+
+  const calculateGrandTotal = (order) => {
+    const productTotal = (order.slots || []).reduce((acc, slot) => {
+      return (
+        acc + (slot.products || []).reduce((sum, p) => sum + (p.total || 0), 0)
+      );
+    }, 0);
+
+    // console.log("order.slots.prods: ", order.slots[0].products)
+    // order.slots[0].products.forEach((product, index) => {
+    //   console.log(`${index}: `, product);  // This will print each product object individually
+    // });
+
+    const labour = order.labourecharge || 0;
+    const transport = order.transportcharge || 0;
+    const discountPercent = order.discount || 0;
+    const gstPercent = order.GST || 0;
+    const adjustments = order.adjustments || 0;
+
+    const subtotal = productTotal + labour + transport - adjustments;
+    const discountAmount = (subtotal * discountPercent) / 100;
+    const gstAmount = ((subtotal - discountAmount) * gstPercent) / 100;
+
+    // console.log("calc: ", subtotal - discountAmount + gstAmount)
+
+    return Math.round(subtotal - discountAmount + gstAmount);
+  };
+
+  const grandTotal = order ? calculateGrandTotal(order) : 0;
+
+  useEffect(() => {
+    console.log("useeffect");
+    fetchOrderDetails();
+    fetchAllProducts();
+  }, []);
+
+  useEffect(() => {
+    fetchAvailableStockForAllProducts();
+  }, [products]);
+
+  useEffect(() => {
+    if (order) {
+      fetchFilteredInventoryForOrder();
+    }
+  }, [order]);
+
+  useEffect(() => {
+    getRefurbishmentByOrderId();
+  }, [id]);
+
+  const navigateToDetails = (_id) => {
+    // Navigate to the next page and pass the `_id` in state
+    navigate("/invoice", { state: { id: _id } });
+  };
+
+  const handleDateChange = (productId, dateType, date, productData) => {
+    console.log({ productId, dateType, date, productData });
+    // Update the productDates state with the new date and slot value
+    setProductDates((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [dateType]: date,
+        productData,
+      },
+    }));
+  };
+
+  console.log("productDates: ", productDates);
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    try {
+      const res = await axios.post(`${ApiURL}/order/cancel-slot`, {
+        orderId: order._id,
+      });
+      if (res.status === 200) {
+        setOrder(res.data.order); // <-- Make sure your backend returns the order details
+      }
+    } catch (error) {
+      console.error("Error fetching order details:", error);
     }
   };
 
@@ -1491,13 +2331,15 @@ const OrderDetails = () => {
     return <div>Loading...</div>;
   }
 
-  const handleClickHello = () => {
-    console.log("handleClickHello: ", order.slots[0])
-  }
+  const deliveryDismantleSlots = [
+    "Select Slots",
+    "Slot 1: 7:00 AM to 11:00 PM",
+    "Slot 2: 11:00 PM to 11:45 PM",
+    "Slot 3: 7:30 AM to 4:00 PM",
+  ];
 
   return (
     <div className="p-3" style={{ background: "#f6f8fa", minHeight: "100vh" }}>
-      <button onClick={handleClickHello}>heelo</button>
       <Card className="shadow-sm mb-4" style={{ borderRadius: 12 }}>
         <Card.Body>
           <h6 className="mb-3" style={{ fontWeight: 700, fontSize: 17 }}>
@@ -1551,6 +2393,7 @@ const OrderDetails = () => {
                 size="sm"
                 style={{ fontSize: 12, padding: "2px 14px", marginRight: 8 }}
                 onClick={handleShowAdd}
+                disabled={order && order.orderStatus === "cancelled"}
               >
                 Add Product
               </Button>
@@ -1559,6 +2402,7 @@ const OrderDetails = () => {
                 size="sm"
                 style={{ fontSize: 12, padding: "2px 14px" }}
                 onClick={() => setShowRefModal(true)}
+                disabled={order && order.orderStatus === "cancelled"}
               >
                 Add Refurbishment
               </Button>
@@ -1572,25 +2416,164 @@ const OrderDetails = () => {
             >
               <thead>
                 <tr style={{ background: "#f3f6fa" }}>
-                  <th style={{ width: "35%" }}>Slot</th>
+                  <th>Slot Date</th>
                   <th>Product Name</th>
                   <th>Available Stock</th>
                   <th>Selected Qty</th>
+                  <th>Days</th>
+                  <th>Price/Qty</th>
                   <th>Total</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((prod, idx) => {
-                  const slotDate =
-                    order.slots && order.slots.length > 0
-                      ? `${order.slots[0].quoteDate} to ${order.slots[0].endDate}`
-                      : "No Slot";
+                  // const slotDate =
+                  //   order.slots && order.slots.length > 0
+                  //     ? `${order.slots[0].quoteDate} to ${order.slots[0].endDate}`
+                  //     : "No Slot";
+
+                  console.log("prod order:", prod);
+                  let days = 1;
+                  const quoteDate = prod.productQuoteDate || slot.quoteDate;
+                  const endDate = prod.productEndDate || slot.endDate;
+
+                  if (quoteDate && endDate) {
+                    const start =
+                      quoteDate instanceof Date
+                        ? quoteDate
+                        : parseDate(quoteDate);
+                    const end =
+                      endDate instanceof Date ? endDate : parseDate(endDate);
+                    days =
+                      Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    if (isNaN(days) || days < 1) days = 1;
+                  }
+                  console.log("date difference: ", days);
+
                   return (
                     <tr key={idx}>
-                      <td style={{ fontWeight: 500, color: "#444" }}>
-                        {slotDate}
+                      <td style={{ verticalAlign: "middle", width: "25%" }}>
+                        {editIdx === idx ? (
+                          <>
+                            <div className="d-flex">
+                              <DatePicker
+                                selected={
+                                  productDates[prod.productId]
+                                    ?.productQuoteDate ||
+                                  parseDate(prod.productQuoteDate)
+                                }
+                                onChange={(date) =>
+                                  handleDateChange(
+                                    prod.productId,
+                                    "productQuoteDate",
+                                    date,
+                                    prod.productQuoteDate ||
+                                      order?.slots[0]?.quoteTime
+                                  )
+                                }
+                                dateFormat="dd/MM/yyyy"
+                                className="form-control"
+                                minDate={parseDate(order.slots[0].quoteDate)} // Ensure date is within range
+                                maxDate={parseDate(order.slots[0].endDate)} // Ensure date is within range
+                                disabled={
+                                  order && order.orderStatus === "cancelled"
+                                }
+                              />
+                              <DatePicker
+                                selected={
+                                  productDates[prod.productId]
+                                    ?.productEndDate ||
+                                  parseDate(prod.productEndDate)
+                                }
+                                onChange={(date) =>
+                                  handleDateChange(
+                                    prod.productId,
+                                    "productEndDate",
+                                    date,
+                                    prod.productEndDate ||
+                                      order?.slots[0]?.endTime
+                                  )
+                                }
+                                dateFormat="dd/MM/yyyy"
+                                className="form-control"
+                                minDate={parseDate(order.slots[0].quoteDate)}
+                                maxDate={parseDate(order.slots[0].endDate)}
+                                disabled={
+                                  order && order.orderStatus === "cancelled"
+                                }
+                              />
+                            </div>
+                            <Form.Select
+                              className="m-0 mt-1"
+                              value={
+                                productDates[prod.productId]?.productSlot ||
+                                prod.productSlot
+                              }
+                              onChange={(e) =>
+                                handleDateChange(
+                                  prod.productId,
+                                  "productSlot",
+                                  e.target.value,
+                                  e.target.value
+                                )
+                              }
+                              disabled={
+                                order && order.orderStatus === "cancelled"
+                              }
+                            >
+                              {deliveryDismantleSlots.map((s) => (
+                                <option key={s} value={s}>
+                                  {s}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </>
+                        ) : (
+                          <>
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#444",
+                                marginRight: "10px",
+                              }}
+                            >
+                              {/* Show productQuoteDate */}
+                              {productDates[prod.productId]?.productQuoteDate
+                                ? formatDateToDDMMYYYY(
+                                    productDates[prod.productId]
+                                      ?.productQuoteDate
+                                  )
+                                : order?.slots[0]?.quoteDate ||
+                                  "No date available"}
+                              {"    "}
+                              <span style={{ paddingLeft: "10px" }}>To</span>
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#444",
+                              }}
+                            >
+                              {/* Show productEndDate */}
+                              {productDates[prod.productId]?.productEndDate
+                                ? formatDateToDDMMYYYY(
+                                    productDates[prod.productId]?.productEndDate
+                                  )
+                                : order?.slots[0]?.endDate ||
+                                  "No date available"}
+                            </span>
+                            {/* Show productSlot */}
+                            <div>
+                              {productDates[prod.productId]?.productSlot ||
+                                prod.productSlot}
+                            </div>
+                          </>
+                        )}
                       </td>
+
                       <td>{prod.productName}</td>
                       <td>
                         <span style={{ color: "#1a73e8", fontWeight: 500 }}>
@@ -1602,7 +2585,7 @@ const OrderDetails = () => {
                           <Form.Control
                             type="number"
                             min={1}
-                            max={prod.availableStock}
+                            max={prod.availableStock + prod.quantity}
                             value={editQty}
                             onChange={(e) => {
                               let val = e.target.value.replace(/^0+/, "");
@@ -1610,9 +2593,12 @@ const OrderDetails = () => {
                                 val === ""
                                   ? ""
                                   : Math.max(
-                                    1,
-                                    Math.min(Number(val), prod.availableStock)
-                                  )
+                                      1,
+                                      Math.min(
+                                        Number(val),
+                                        prod.availableStock + prod.quantity
+                                      )
+                                    )
                               );
                             }}
                             style={{
@@ -1626,7 +2612,9 @@ const OrderDetails = () => {
                           prod.quantity
                         )}
                       </td>
-                      <td>₹{prod.total ? prod.total.toFixed(2) : 0}</td>
+                      <td>{days}</td>
+                      <td>₹{(prod.ProductPrice)}</td>
+                      <td>₹{prod.total * days}</td>
                       <td>
                         {editIdx === idx ? (
                           <>
@@ -1654,6 +2642,9 @@ const OrderDetails = () => {
                               size="sm"
                               style={{ color: "#157347", padding: 0 }}
                               onClick={() => handleEdit(idx, prod.quantity)}
+                              disabled={
+                                order && order.orderStatus === "cancelled"
+                              }
                             >
                               <FaEdit />
                             </Button>
@@ -1666,6 +2657,9 @@ const OrderDetails = () => {
                                 marginLeft: 8,
                               }}
                               onClick={() => handleDelete(idx)}
+                              disabled={
+                                order && order.orderStatus === "cancelled"
+                              }
                             >
                               <FaTrashAlt />
                             </Button>
@@ -1696,14 +2690,19 @@ const OrderDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {addedRefProducts.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{item.productName}</td>
-                    <td>{item.qty}</td>
-                    <td>₹{item.price}</td>
-                    <td>{item.damage}</td>
-                  </tr>
-                ))}
+                {refurbishmentdata?.products?.map((ele) => {
+                  return (
+                    <tr>
+                      <td className="border-b p-2">{ele?.productName}</td>
+                      <td className="border-b p-2">{ele.quantity}</td>
+                      <td className="border-b p-2">₹{ele.price}</td>
+                      <td className="border-b p-2">{ele.damage}</td>
+                      <td className="border-b p-2">
+                        {ele.shippingaddressrefurbishment}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           </div>
@@ -1712,7 +2711,8 @@ const OrderDetails = () => {
               variant="primary"
               size="sm"
               style={{ fontSize: 13, fontWeight: 600 }}
-              onClick={() => navigate(`/invoice/12`)}
+              onClick={() => navigate(`/invoice/${id}`)}
+              disabled={order && order.orderStatus === "cancelled"}
             >
               Generate Invoice
             </Button>
@@ -1720,6 +2720,8 @@ const OrderDetails = () => {
               variant="info"
               size="sm"
               style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}
+              onClick={() => navigate(`/refurbishment-invoice/${id}`)}
+              disabled={order && order.orderStatus === "cancelled"}
             >
               Refurbishment Invoice
             </Button>
@@ -1727,6 +2729,8 @@ const OrderDetails = () => {
               variant="danger"
               size="sm"
               style={{ fontSize: 13, fontWeight: 600 }}
+              onClick={handleCancelOrder}
+              disabled={order && order.orderStatus === "cancelled"}
             >
               Cancel Order
             </Button>
@@ -1751,10 +2755,10 @@ const OrderDetails = () => {
                 value={
                   addProductId
                     ? availableToAdd
-                      .map((p) => ({ value: p._id, label: p.ProductName }))
-                      .find(
-                        (opt) => String(opt.value) === String(addProductId)
-                      )
+                        .map((p) => ({ value: p._id, label: p.ProductName }))
+                        .find(
+                          (opt) => String(opt.value) === String(addProductId)
+                        )
                     : null
                 }
                 onChange={handleProductSelect}
@@ -1810,8 +2814,9 @@ const OrderDetails = () => {
                   <Form.Label>Price</Form.Label>
                   <Form.Control
                     type="text"
-                    value={`₹${selectedAddProduct ? selectedAddProduct.ProductPrice : 0
-                      }`}
+                    value={`₹${
+                      selectedAddProduct ? selectedAddProduct.ProductPrice : 0
+                    }`}
                     disabled
                   />
                 </Form.Group>
@@ -1823,15 +2828,42 @@ const OrderDetails = () => {
                     type="text"
                     value={
                       selectedAddProduct
-                        ? `₹${(addQty ? addQty : 1) *
-                        selectedAddProduct.ProductPrice
-                        }`
+                        ? `₹${
+                            (addQty ? addQty : 1) *
+                            selectedAddProduct.ProductPrice
+                          }`
                         : "₹0"
                     }
                     disabled
                   />
                 </Form.Group>
               </Col>
+              {/* <Col xs={6}>
+                <Form.Group className="mb-3" controlId="addProductTotal">
+                  <Form.Label>choose slot</Form.Label>
+                  <Form.Select
+                    className="m-0 mt-1"
+                    value={
+                      productDates[selectedAddProduct?.productId]?.productSlot ||
+                      selectedAddProduct?.productSlot
+                    } // Default to initial slot value
+                    onChange={(e) =>
+                      handleDateChange(
+                        selectedAddProduct._id,
+                        "productSlot",
+                        e.target.value,
+                        e.target.value
+                      )
+                    }
+                  >
+                    {deliveryDismantleSlots.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col> */}
             </Row>
           </Form>
         </Modal.Body>
@@ -2013,10 +3045,7 @@ const OrderDetails = () => {
           <Button
             variant="primary"
             disabled={!shippingAddress || addedRefProducts.length === 0}
-            onClick={() => {
-              // Submit logic here
-              handleCloseRefModal();
-            }}
+            onClick={handleRefurbishment}
           >
             Submit
           </Button>

@@ -43,11 +43,21 @@ const SubCategory = () => {
   const getSubcategory = async () => {
     try {
       const res = await axios.get(`${ApiURL}/subcategory/getappsubcat`);
+      console.log("res: ", res.data);
       if (res.status === 200) {
-        setSubCategories(res.data.subcategory);
+        const sortedData = res.data.subcategory.sort((a, b) => {
+          const dateA = new Date(a.updatedAt || a.createdAt || 0);
+          const dateB = new Date(b.updatedAt || b.createdAt || 0);
+          return dateB - dateA; 
+        });
+
+        setSubCategories(sortedData);
+      } else {
+        console.warn("Unexpected response structure:", res.data);
       }
     } catch (error) {
       console.error("Error fetching subcategories:", error);
+      toast.error("Failed to fetch subcategories"); // Optional user feedback
     }
   };
 
@@ -154,15 +164,12 @@ const SubCategory = () => {
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
-
   const handleSelectAllRows = (checked) => {
     const currentPageIds = currentItems.map((item) => item._id);
     if (checked) {
-      // Combine existing selected rows with new ones from current page, avoiding duplicates
-      const newSelected = [...new Set([ ...currentPageIds])];
-      setSelectedRows(newSelected);
+      const updated = [...new Set([...selectedRows, ...currentPageIds])];
+      setSelectedRows(updated);
     } else {
-      // Remove only the ones from the current page
       const remaining = selectedRows.filter(
         (id) => !currentPageIds.includes(id)
       );
@@ -171,12 +178,10 @@ const SubCategory = () => {
   };
 
   const handleDeleteSelected = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete selected sub-categories?"
-      )
-    )
-      return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete selected sub-categories?"
+    );
+    if (!confirmDelete) return;
 
     try {
       await Promise.all(
@@ -186,7 +191,7 @@ const SubCategory = () => {
       );
       toast.success("Selected sub-categories deleted");
       getSubcategory();
-      setSelectedRows([]);
+      setSelectedRows([]); // clear selection after delete
     } catch (err) {
       console.error(err);
       toast.error("Error deleting selected sub-categories");

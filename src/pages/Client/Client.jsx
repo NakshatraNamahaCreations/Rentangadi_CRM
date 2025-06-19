@@ -215,7 +215,6 @@ const Client = () => {
                     <Button
                       variant="outline-danger"
                       size="sm"
-                    
                       style={{ padding: "4px 8px", fontSize: "10px" }}
                       onClick={() => handleDeleteClient(index)}
                     >
@@ -224,6 +223,14 @@ const Client = () => {
                   </td>
                 </tr>
               ))}
+
+              {filteredClients.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center">
+                    No Products found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </div>

@@ -243,7 +243,7 @@ const ProductManagement = () => {
                     {product.ProductName}
                   </td>
                   <td className="text-start" style={{ fontSize: "12px" }}>
-                    {product.ProductStock ? product.ProductStock : "0"} 
+                    {product.ProductStock ? product.ProductStock : "0"}
                   </td>
                   <td className="text-start" style={{ fontSize: "12px" }}>
                     {product.ProductPrice}
@@ -290,6 +290,14 @@ const ProductManagement = () => {
                   </td>
                 </tr>
               ))}
+
+              {filteredProducts.length === 0 && (
+                <tr>
+                  <td colSpan="8" className="text-center">
+                    No Products found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </div>
