@@ -55,6 +55,7 @@ const formatDateToDDMMYYYY = (date) => {
 
 const QuotationDetails = () => {
   const { id } = useParams();
+
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -570,7 +571,7 @@ const QuotationDetails = () => {
   const discount = Number(quotation?.discount || 0);
   const transport = Number(quotation?.transportcharge || 0);
   const manpower = Number(quotation?.labourecharge || 0);
-  const roundOff = Number(quotation?.adjustments || quotation?.roundOff || 0);
+  // const roundOff = Number(quotation?.adjustments || quotation?.roundOff || 0);
   const gst = Number(quotation?.GST || 0);
 
   // Add transport and manpower
@@ -648,6 +649,7 @@ const QuotationDetails = () => {
   const handleDelete = async (item) => {
     if (!window.confirm("Delete this product?")) return;
 
+    
     const updatedItems = items.filter((i) => i.productId !== item.productId);
 
     quotation.slots.forEach((slot) => {
@@ -800,7 +802,12 @@ const QuotationDetails = () => {
 
     // === COST SUMMARY ===
     const summary = [
-      ["Discount (%)", `${(discount || 0).toFixed(2)}`],
+      // ["Discount (%)", `${(discount || 0).toFixed(2)}`],
+       ...(discount && discount !== 0
+    ? [
+        ["Discount (%)", `${(discount || 0).toFixed(2)}`],
+      ]
+    : []),
       [
         "Transportation",
         `Rs. ${Number(transportcharge || 0).toLocaleString("en-IN", {
@@ -819,12 +826,12 @@ const QuotationDetails = () => {
           minimumFractionDigits: 2,
         })}`,
       ],
-      [
-        "Round Off",
-        `Rs. ${Number(adjustments || 0).toLocaleString("en-IN", {
-          minimumFractionDigits: 2,
-        })}`,
-      ],
+      // [
+      //   "Round Off",
+      //   `Rs. ${Number(adjustments || 0).toLocaleString("en-IN", {
+      //     minimumFractionDigits: 2,
+      //   })}`,
+      // ],
       ["GST (%)", `${(GST || 0).toFixed(2)}`],
       [
         "Grand Total",
@@ -1277,10 +1284,10 @@ const QuotationDetails = () => {
           >
             Cost Summary
           </h5>
-          <div className="d-flex justify-content-between mb-2">
+          {quotation?.discount != 0 && <div className="d-flex justify-content-between mb-2">
             <span>Discount(%):</span>
             <span>{(quotation.discount || 0).toFixed(2)}</span>
-          </div>
+          </div>}
           <div className="d-flex justify-content-between mb-2">
             <span>Transportation:</span>
             <span>₹{(quotation.transportcharge || 0).toFixed(2)}</span>
@@ -1301,12 +1308,12 @@ const QuotationDetails = () => {
                 .toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="d-flex justify-content-between mb-2">
+          {/* <div className="d-flex justify-content-between mb-2">
             <span>Round Off:</span>
             <span>
               ₹{(quotation.adjustments || quotation.roundOff || 0).toFixed(2)}
             </span>
-          </div>
+          </div> */}
           <div className="d-flex justify-content-between mb-2">
             <span>GST(%):</span>
             <span>{(quotation?.GST || 0).toFixed(2)}</span>

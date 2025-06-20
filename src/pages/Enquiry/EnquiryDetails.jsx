@@ -318,6 +318,10 @@ const EnquiryDetails = () => {
       return;
     }
 
+    const confirmedProducts = enquiry?.products.filter((product) => confirmed[product?.productId]);
+    console.log("confirmed: ", confirmedProducts)
+    console.log("products: ", enquiry?.products)
+
     const dataToSubmit = {
       enquiryObjectId: enquiry._id,
       enquiryId: enquiry.enquiryId,
@@ -385,7 +389,7 @@ const EnquiryDetails = () => {
           slots: enquiry.slots || [
             {
               slotName: enquiry.enquiryTime,
-              Products: enquiry.products,
+              Products: confirmedProducts || enquiry.products,
               quoteDate: enquiry.enquiryDate,
               endDate: enquiry.endDate,
             },
@@ -410,14 +414,67 @@ const EnquiryDetails = () => {
     setLoading(false);
   };
 
-  // // Calculate grand total
-  // const subtotal = allProducts?.reduce(
-  //   (sum, p) => (confirmed[p.id] ? sum + p.qty * p.price : sum),
-  //   0
-  // );
+  // older code
+  // const handleAddProduct = async () => {
+  //   if (!selectedAddProduct) return;
 
-  // 4. Update handleAddProduct to actually add to the enquiry (API call):
+  //   const qty = Math.max(1, Number(addQty) || 1);
 
+  //   // Check if product already exists
+  //   const existingIndex = (enquiry?.products || []).findIndex(
+  //     (p) => String(p.productId) === String(selectedAddProduct._id)
+  //   );
+
+  //   let updatedProduct;
+
+  //   if (existingIndex !== -1) {
+  //     // If it exists, create the updated single product object
+  //     const existing = enquiry.products[existingIndex];
+  //     const newQty = Number(existing.qty) + qty;
+  //     updatedProduct = {
+  //       ...existing,
+  //       qty: newQty,
+  //       total: newQty * Number(existing.price),
+  //     };
+  //   } else {
+  //     // If new, create new product object
+  //     updatedProduct = {
+  //       productId: selectedAddProduct._id,
+  //       name: selectedAddProduct.ProductName,
+  //       stock: selectedAddProduct.ProductStock,
+  //       qty,
+  //       price: Number(selectedAddProduct.ProductPrice),
+  //       total: qty * Number(selectedAddProduct.ProductPrice),
+  //     };
+  //   }
+
+  //   try {
+  //     const config = {
+  //       url: "/Enquiry/add-products",
+  //       method: "post",
+  //       baseURL: ApiURL,
+  //       headers: { "content-type": "application/json" },
+  //       data: {
+  //         id: enquiry?._id, // Use MongoDB ObjectId (not enquiryId)
+  //         products: [updatedProduct], // ✅ send only updated/new product
+  //       },
+  //     };
+
+  //     const response = await axios(config);
+  //     if (response.status === 200) {
+  //       // Refresh whole enquiry (assumes backend updates & returns full data)
+  //       fetchEnquiry();
+  //       setShowAdd(false);
+  //       setAddProductId("");
+  //       setAddQty(1);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to add product:", error?.response || error);
+  //     alert("Failed to add product");
+  //   }
+  // };
+
+ 
   const handleAddProduct = async () => {
     if (!selectedAddProduct) return;
 
@@ -439,6 +496,13 @@ const EnquiryDetails = () => {
         qty: newQty,
         total: newQty * Number(existing.price),
       };
+      // Update the product list with the updated product
+      setEnquiry((prev) => ({
+        ...prev,
+        products: prev.products.map((p) =>
+          p.productId === selectedAddProduct._id ? updatedProduct : p
+        ),
+      }));
     } else {
       // If new, create new product object
       updatedProduct = {
@@ -449,38 +513,42 @@ const EnquiryDetails = () => {
         price: Number(selectedAddProduct.ProductPrice),
         total: qty * Number(selectedAddProduct.ProductPrice),
       };
+      // Add the new product to the list
+      setEnquiry((prev) => ({
+        ...prev,
+        products: [...prev.products, updatedProduct],
+      }));
     }
 
-    try {
-      const config = {
-        url: "/Enquiry/add-products",
-        method: "post",
-        baseURL: ApiURL,
-        headers: { "content-type": "application/json" },
-        data: {
-          id: enquiry?._id, // Use MongoDB ObjectId (not enquiryId)
-          products: [updatedProduct], // ✅ send only updated/new product
-        },
-      };
+    // try {
+    //   const config = {
+    //     url: "/Enquiry/add-products",
+    //     method: "post",
+    //     baseURL: ApiURL,
+    //     headers: { "content-type": "application/json" },
+    //     data: {
+    //       id: enquiry?._id, // Use MongoDB ObjectId (not enquiryId)
+    //       products: [updatedProduct], // ✅ send only updated/new product
+    //     },
+    //   };
 
-      const response = await axios(config);
-      if (response.status === 200) {
-        // Refresh whole enquiry (assumes backend updates & returns full data)
-        fetchEnquiry();
-        setShowAdd(false);
-        setAddProductId("");
-        setAddQty(1);
-      }
-    } catch (error) {
-      console.error("Failed to add product:", error?.response || error);
-      alert("Failed to add product");
-    }
+    //   const response = await axios(config);
+    //   if (response.status === 200) {
+    //     // Refresh whole enquiry (assumes backend updates & returns full data)
+    //     fetchEnquiry();
+    //     setShowAdd(false);
+    //     setAddProductId("");
+    //     setAddQty(1);
+    //   }
+    // } catch (error) {
+    //   console.error("Failed to add product:", error?.response || error);
+    //   alert("Failed to add product");
+    // }
+    setShowAdd(false);
+    setAddProductId("");
+    setAddQty(1);
   };
-
-  // const discountAmt = subtotal * (Number(discount || 0) / 100);
-  // const afterDiscount = subtotal - discountAmt;
-  // const gstAmt = afterDiscount * (Number(gst || 0) / 100);
-  // const grandTotal = Math.round(afterDiscount + gstAmt + Number(roundOff || 0) - Number(adjustment || 0));
+  
 
   const subtotal = totalAmount + Number(manpower || 0) + Number(transport || 0);
   const discountAmt = subtotal * (Number(discount || 0) / 100);

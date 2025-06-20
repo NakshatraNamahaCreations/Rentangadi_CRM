@@ -168,22 +168,41 @@ const AddNewEnquiry = () => {
     );
   };
 
-  const handleQtyChange = (id, qty) => {
-    let val = qty.replace(/[^0-9]/g, "");
-    if (val === "" || parseInt(val, 10) < 1) val = "1";
-    setSelectedProducts((prev) =>
-      prev.map((p) =>
-        p.id === id || p._id === id
-          ? {
-              ...p,
-              qty: val,
-              total: (parseInt(val, 10) || 1) * (p.ProductPrice || p.price),
-            }
-          : p
-      )
-    );
-  };
+  // const handleQtyChange = (id, qty) => {
+  //   let val = qty.replace(/[^0-9]/g, "");
+  //   if (val === "" || parseInt(val, 10) < 1) val = "1";
+  //   setSelectedProducts((prev) =>
+  //     prev.map((p) =>
+  //       p.id === id || p._id === id
+  //         ? {
+  //             ...p,
+  //             qty: val,
+  //             total: (parseInt(val, 10) || 1) * (p.ProductPrice || p.price),
+  //           }
+  //         : p
+  //     )
+  //   );
+  // };
   // Handle product dropdown open/close
+  
+  const handleQtyChange = (id, qty) => {
+  // Directly update the quantity without replacing or restricting characters
+  let val = qty;
+
+  // Update the selected products with the new quantity and total
+  setSelectedProducts((prev) =>
+    prev.map((p) =>
+      p.id === id || p._id === id
+        ? {
+            ...p,
+            qty: val,  // Directly set the value entered by the user
+            total: (parseFloat(val) || 0) * (p.ProductPrice || p.price), // Use parseFloat to handle decimals if needed
+          }
+        : p
+    )
+  );
+};
+
   const handleProductDropdown = (open) => {
     setShowProductDropdown(open);
     setProductSearch("");
@@ -198,6 +217,7 @@ const AddNewEnquiry = () => {
       !executive ||
       !deliveryDate ||
       !dismantleDate ||
+      !selectedSlot ||
       !venue ||
       selectedProducts.length === 0
     ) {

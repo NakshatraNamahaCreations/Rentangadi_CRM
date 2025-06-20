@@ -314,7 +314,7 @@ const ProductDetails = () => {
                 <Col xs={6}>
                   <strong>Description:</strong>
                 </Col>
-                <Col xs={6}>{product.ProductDesc}</Col>
+                <Col xs={6}>{product.ProductDesc || "N/A"}</Col>
               </Row>
             </Col>
           </Row>

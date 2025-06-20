@@ -2252,9 +2252,10 @@ const OrderDetails = () => {
     const transport = order.transportcharge || 0;
     const discountPercent = order.discount || 0;
     const gstPercent = order.GST || 0;
-    const adjustments = order.adjustments || 0;
+    // const adjustments = order.adjustments || 0;
 
-    const subtotal = productTotal + labour + transport - adjustments;
+    // const subtotal = productTotal + labour + transport - adjustments;
+    const subtotal = productTotal + labour + transport ;
     const discountAmount = (subtotal * discountPercent) / 100;
     const gstAmount = ((subtotal - discountAmount) * gstPercent) / 100;
 
@@ -2531,6 +2532,7 @@ const OrderDetails = () => {
                           </>
                         ) : (
                           <>
+                            {/* If not in edit mode, just show the date and slot */}
                             <span
                               style={{
                                 fontSize: "14px",
@@ -2540,14 +2542,16 @@ const OrderDetails = () => {
                               }}
                             >
                               {/* Show productQuoteDate */}
-                              {productDates[prod.productId]?.productQuoteDate
+                              {/* {productDates[prod.productId]?.productQuoteDate
                                 ? formatDateToDDMMYYYY(
                                     productDates[prod.productId]
                                       ?.productQuoteDate
                                   )
                                 : order?.slots[0]?.quoteDate ||
                                   "No date available"}
-                              {"    "}
+                              {"    "} */}
+
+                              {prod.productQuoteDate}
                               <span style={{ paddingLeft: "10px" }}>To</span>
                             </span>
                             <span
@@ -2558,12 +2562,14 @@ const OrderDetails = () => {
                               }}
                             >
                               {/* Show productEndDate */}
-                              {productDates[prod.productId]?.productEndDate
+                              {/* {productDates[prod.productId]?.productEndDate
                                 ? formatDateToDDMMYYYY(
                                     productDates[prod.productId]?.productEndDate
                                   )
                                 : order?.slots[0]?.endDate ||
-                                  "No date available"}
+                                  "No date available"} */}
+
+                                  {prod.productEndDate}
                             </span>
                             {/* Show productSlot */}
                             <div>

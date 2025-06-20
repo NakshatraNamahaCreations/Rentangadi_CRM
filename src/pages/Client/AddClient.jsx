@@ -168,13 +168,13 @@ const AddClient = () => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>📞 Contact Person Number *</Form.Label>
+              <Form.Label>📞 Contact Person Number </Form.Label>
               <Form.Control
                 type="tel"
                 name="contactPersonNumber"
                 value={client.contactPersonNumber}
                 onChange={handleClientChange}
-                required
+                // required
                 className="rounded-3 shadow-sm"
               />
             </Form.Group>
@@ -191,14 +191,14 @@ const AddClient = () => {
             </Form.Group>
 
             <Form.Group className="mb-4">
-              <Form.Label>🏠 Address *</Form.Label>
+              <Form.Label>🏠 Address </Form.Label>
               <Form.Control
                 as="textarea"
                 rows={2}
                 name="address"
                 value={client.address}
                 onChange={handleClientChange}
-                required
+                // required
                 className="rounded-3 shadow-sm"
               />
             </Form.Group>

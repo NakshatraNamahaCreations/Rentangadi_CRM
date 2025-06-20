@@ -104,7 +104,7 @@ const AddProduct = () => {
           productIcon: p.ProductIcon || null, // Use existing icon if available
         });
         if (p.ProductIcon) {
-          setIconPreview(`${ImageApiURL}product/${p.ProductIcon}`);
+          setIconPreview(`${ImageApiURL}/product/${p.ProductIcon}`);
         }
       }
     } catch (error) {
@@ -206,10 +206,10 @@ const AddProduct = () => {
       toast.error("Please enter a product name");
       return;
     }
-    if (!productData.description) {
-      toast.error("Please enter a product description");
-      return;
-    }
+    // if (!productData.description) {
+    //   toast.error("Please enter a product description");
+    //   return;
+    // }
     if (!productData.pricing) {
       toast.error("Please enter a product price");
       return;
@@ -497,7 +497,7 @@ const AddProduct = () => {
             {/* Description */}
             <Form.Group className="mb-3">
               <Form.Label style={{ fontSize: 14 }}>
-                Product Description <span className="text-danger">*</span>
+                Product Description 
               </Form.Label>
               <Form.Control
                 as="textarea"
@@ -505,7 +505,7 @@ const AddProduct = () => {
                 name="description"
                 value={productData.description}
                 onChange={handleChange}
-                required
+                // required
                 className="rounded-3 shadow-sm"
                 style={{ fontSize: 14 }}
               />

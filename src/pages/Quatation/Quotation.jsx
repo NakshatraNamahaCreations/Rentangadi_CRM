@@ -241,8 +241,6 @@
 
 // export default Quotation;
 
-
-
 import React, { useEffect, useState } from "react";
 import { Button, Card, Table, Container, Form, Spinner } from "react-bootstrap";
 import Pagination from "../../components/Pagination";
@@ -257,6 +255,7 @@ const itemsPerPage = 10;
 
 const Quotation = () => {
   const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -329,12 +328,15 @@ const Quotation = () => {
       "Are you sure you want to delete this quotation?"
     );
     if (!confirmDelete) return;
+    setIsDeleting(true);
     try {
-      await axios.post(`${ApiURL}/quotations/deletequotation/${id}`);
+      await axios.delete(`${ApiURL}/quotations/deletequotation/${id}`);
       fetchQuotations();
       setSelectedRows((prev) => prev.filter((rowId) => rowId !== id));
     } catch {
       toast.error("Failed to delete quotation");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -345,7 +347,7 @@ const Quotation = () => {
     try {
       await Promise.all(
         selectedRows.map((id) =>
-          axios.post(`${ApiURL}/quotations/deletequotation/${id}`)
+          axios.delete(`${ApiURL}/quotations/deletequotation/${id}`)
         )
       );
       fetchQuotations();
@@ -390,6 +392,13 @@ const Quotation = () => {
         </div>
       </div>
 
+   {isDeleting && (
+        <div className="text-center mb-4">
+          <Spinner animation="border" variant="primary" />
+          <p>Deleting the quotation...</p>
+        </div>
+      )}
+      
       <Card className="border-0 shadow-sm">
         <div
           className="table-responsive bg-white rounded-lg"
@@ -477,7 +486,7 @@ const Quotation = () => {
           {currentItems.length === 0 && (
             <Container
               className="text-center d-flex justify-content-center align-items-center"
-              style={{ width: "100%", height:"60vh" }}
+              style={{ width: "100%", height: "60vh" }}
             >
               <Spinner animation="border" />
             </Container>
